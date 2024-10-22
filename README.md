@@ -20,3 +20,4 @@
 * http://name.tr1-g5.dam.inspedralbes.cat/ 
 
 ## Fluxe de pantalles:
+![Uploading Diagrama de casos d'us.drawio.png…]()
