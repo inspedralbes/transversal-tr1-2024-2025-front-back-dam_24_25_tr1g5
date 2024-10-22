@@ -20,3 +20,7 @@
 * http://name.tr1-g5.dam.inspedralbes.cat/ 
 
 ## Fluxe de pantalles:
+![image](https://github.com/user-attachments/assets/9d1a71ed-49c0-4747-a0a2-01a354cde9ac)
+
+
+
