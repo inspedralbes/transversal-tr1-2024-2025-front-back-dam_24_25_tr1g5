@@ -1,11 +1,14 @@
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const dataBD = require('./configDB');
 
 const connection = mysql.createConnection({
     host: dataBD.host,
     user: dataBD.user,
     password: dataBD.password,
-    database: dataBD.database
+    database: dataBD.database,
+    waitForConnections: true,
+  connectionLimit: 10,  // número máximo de conexiones en el pool
+  queueLimit: 0
 });
 
 connection.connect((err) => {

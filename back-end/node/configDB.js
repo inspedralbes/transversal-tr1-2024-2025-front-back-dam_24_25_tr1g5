@@ -1,6 +1,6 @@
 module.exports = {
     host: 'localhost',
-    user: 'yourUsername',
-    password: 'yourPassword',
-    database: 'yourDatabaseName'
+    user: 'a23edstorcev',
+    password: 'InstitutPedralbes_2024',
+    database: 'tr1_takeaway'
 };
