@@ -38,7 +38,7 @@ const writeQuestionsToFile = (questions) => {
   }
 };
 
-// Ver todos los productos
+// VER TODOS LOS PRODUCTOS
 app.get('/product', (req, res) => {
   try {
     const rows = connectionDB.query('SELECT * FROM products'); // Cambiado a 'products'
@@ -50,7 +50,7 @@ app.get('/product', (req, res) => {
   }
 });
 
-// Ver un producto específico
+// VER UN PRODUCTO ESPECIFICO
 app.get('/product/:id', (req, res) => {
   const { id } = req.params;
   try {
@@ -97,6 +97,62 @@ app.post('/product',(req, res) => {
     res.status(500).send('Error fetching product.');
   }
 });
+
+// Eliminar un producto por ID
+app.delete('/product/:id', (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = connectionDB.query('DELETE FROM products WHERE id = ?', [id]);
+
+    if (result.affectedRows > 0) {
+      res.status(200).send(`Producto con ID ${id} eliminado con éxito.`);
+    } else {
+      res.status(404).send('Producto no encontrado.');
+    }
+  } catch (error) {
+    console.error('Error al eliminar el producto:', error);
+    res.status(500).send('Error al eliminar el producto.');
+  }
+});
+
+// Editar un producto por ID
+app.put('/product/:id', (req, res) => {
+  const { id } = req.params;
+  const { categoryId, name, description, size, price, imagePath, colors, stock, activated } = req.body;
+
+  // Verificar si los datos obligatorios están presentes
+  if (
+    categoryId === undefined || 
+    !name || 
+    !description || 
+    !size || 
+    price === undefined || 
+    !imagePath || 
+    !colors || 
+    stock === undefined || 
+    activated === undefined
+  ) {
+    return res.status(400).send('Datos incompletos.');
+  }
+
+  try {
+    const result = connectionDB.query(
+      `UPDATE products SET categoryId = ?, name = ?, description = ?, size = ?, price = ?, imagePath = ?, colors = ?, stock = ?, activated = ? WHERE id = ?`, 
+      [categoryId, name, description, size, price, imagePath, colors, stock, activated, id]
+    );
+
+    if (result.affectedRows > 0) {
+      res.status(200).send(`Producto con ID ${id} actualizado con éxito.`);
+    } else {
+      res.status(404).send('Producto no encontrado.');
+    }
+  } catch (error) {
+    console.error('Error al actualizar el producto:', error);
+    res.status(500).send('Error al actualizar el producto.');
+  }
+});
+
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
