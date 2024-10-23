@@ -1,0 +1,62 @@
+[
+    {
+        "id": 1,
+        "category": "Zapatos deportivos",
+        "name": "Nike Air Max 2021",
+        "description": "Zapatillas deportivas cómodas y modernas.",
+        "size": "42",
+        "price": 120.99,
+        "imagePath": "nike_air_max_2021.jpg",
+        "color": "Negro",
+        "stock": 50,
+        "activated": true
+    },
+    {
+        "id": 2,
+        "category": "Zapatos formales",
+        "name": "Oxford Classic",
+        "description": "Zapatos de cuero elegantes y atemporales.",
+        "size": "40",
+        "price": 89.99,
+        "imagePath": "oxford_classic.jpg",
+        "color": "Marrón",
+        "stock": 30,
+        "activated": true
+    },
+    {
+        "id": 3,
+        "category": "Zapatos de mujer",
+        "name": "Bailarinas Elegantes",
+        "description": "Bailarinas cómodas y con estilo para uso diario.",
+        "size": "38",
+        "price": 45.50,
+        "imagePath": "bailarinas_elegantes.jpg",
+        "color": "Rojo",
+        "stock": 20,
+        "activated": true
+    },
+    {
+        "id": 4,
+        "category": "Zapatos deportivos",
+        "name": "Adidas Ultraboost",
+        "description": "Zapatillas que ofrecen un gran confort y soporte.",
+        "size": "41",
+        "price": 150.00,
+        "imagePath": "adidas_ultraboost.jpg",
+        "color": "Blanco",
+        "stock": 10,
+        "activated": true
+    },
+    {
+        "id": 5,
+        "category": "Zapatos informales",
+        "name": "Converse Chuck Taylor",
+        "description": "Zapatillas clásicas de lona, perfectas para el verano.",
+        "size": "39",
+        "price": 55.00,
+        "imagePath": "converse_chuck_taylor.jpg",
+        "color": "Azul",
+        "stock": 25,
+        "activated": true
+    }
+]
