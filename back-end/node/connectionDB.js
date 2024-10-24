@@ -1,7 +1,7 @@
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 const dataBD = require('./configDB');
 
-const connection = mysql.createConnection({
+const connection = mysql.createPool({
     host: dataBD.host,
     user: dataBD.user,
     password: dataBD.password,
@@ -11,12 +11,12 @@ const connection = mysql.createConnection({
   queueLimit: 0
 });
 
-connection.connect((err) => {
+/*connection.connect((err) => {
     if (err) {
         console.error('Error connecting to the database:', err.stack);
         return;
     }
     console.log('Connected to the database as id ' + connection.threadId);
-});
+});*/
 
 module.exports = connection;

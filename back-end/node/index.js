@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 const connectionDB = require('./connectionDB'); // Pool de conexiones
+const connection = require('./connectionDB');
 const port = 3000;
 const JSON = 'productos.json';
 const JSONPath = path.join(__dirname, JSON);
@@ -12,66 +13,48 @@ const JSONPath = path.join(__dirname, JSON);
 app.use(cors());
 app.use(express.json());
 
-// Leer el archivo JSON
-const readEntireFile = () => {
-  if (!fs.existsSync(JSONPath)) {
-    console.error('El archivo no existe:', JSONPath);
-    return []; // Devuelve un array vacío si el archivo no existe
-  }
-  try {
-    const data = fs.readFileSync(JSONPath, 'utf8');
-    console.log('Contenido del archivo:', data); // Verifica el contenido
-    return JSON.parse(data).preguntes; // Devuelve directamente el array de preguntas
-  } catch (error) {
-    console.error('Error al leer el archivo:', error);
-    throw new Error('Error al leer las preguntas.');
-  }
-};
 
-const writeQuestionsToFile = (questions) => {
-  try {
-    const data = JSON.stringify({ preguntes: questions }, null, 2);
-    fs.writeFileSync(JSONPath, data);
-  } catch (error) {
-    console.error('Error al escribir el archivo:', error);
-    throw new Error('Error al guardar las preguntas.');
-  }
-};
-
+//
 // VER TODOS LOS PRODUCTOS
-app.get('/product', (req, res) => {
+//
+// Hace un SELECT de la tabla productos, muestra todos los productos
+app.get('/product', async (req, res) => {
   try {
-    const rows = connectionDB.query('SELECT * FROM products'); // Cambiado a 'products'
-    console.log("Products: ", rows); // Imprime solo los datos de los productos
-    res.json(rows); // Envía los productos como respuesta
+    const [rows] = await connection.query('SELECT * FROM products');
+    console.log("Products: ", rows);
   } catch (error) {
-    console.error('Error fetching products:', error); // Imprimir el error
+    console.error('Error fetching products:', error); 
     res.status(500).send('Error fetching products.');
   }
 });
 
-// VER UN PRODUCTO ESPECIFICO
-app.get('/product/:id', (req, res) => {
+//
+// VER UN PRODUCTO ESPECÍFICO
+//
+// Requiere un parametro 'id' el cual usamos para hacer un SELECT de un producto en especifico, muestra el producto
+app.get('/product/:id', async (req, res) => {
   const { id } = req.params;
+  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const productId = parseInt(cleanedId, 10); // Convertir a entero
+
+  
   try {
-    const rows = connectionDB.query('SELECT * FROM products WHERE id = ?', [id]);
-    console.log("Product: ", rows); // Imprime solo el producto
-    if (rows.length > 0) {
-      res.json(rows[0]); // Devuelve solo el producto encontrado
-    } else {
-      res.status(404).send('Producto no encontrado.');
-    }
+    const [rows] = await connection.query('SELECT * FROM products WHERE id = ?', [productId]);
+    console.log("Product: ", rows); 
+
   } catch (error) {
-    console.error('Error fetching product:', error); // Imprimir el error
+    console.error('Error fetching product:', error); 
     res.status(500).send('Error fetching product.');
   }
 });
 
-// AÑADIR UN PRODUCTO A LA BASE DE DATOS
-app.post('/product',(req, res) => {
-  const { categoryId, name, description, size, price, imagePath, colors, stock, activated } = req.body;
 
-  // Verificamos si alguna de las constantes obligatorias está ausente o es undefined
+//
+// AÑADIR UN PRODUCTO A LA BASE DE DATOS
+//
+// // Requiere un parametro 'body', provenienet de un JSON, el cual usamos para hacer un INSERT de un producto en especifico, añade el producto
+app.post('/product', async (req, res) => {
+  const { categoryId, name, description, size, price, imagePath, colors, stock, activated } = req.body;
   if (
     categoryId === undefined || 
     !name || 
@@ -87,26 +70,35 @@ app.post('/product',(req, res) => {
   }
 
   try {
-    // Ejecuta la consulta de inserción
-    const result = connectionDB.query(
+    const [result] = await connectionDB.query(
       'INSERT INTO products (categoryId, name, description, size, price, imagePath, colors, stock, activated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
       [categoryId, name, description, size, price, imagePath, colors, stock, activated]
     );
+    res.status(201).send('Producto añadido con éxito.');
+    console.log()
   } catch (error) {
-    console.error('Error fetching product:', error); // Imprimir el error
-    res.status(500).send('Error fetching product.');
+    console.error('Error adding product:', error);
+    res.status(500).send('Error adding product.');
   }
 });
 
-// Eliminar un producto por ID
-app.delete('/product/:id', (req, res) => {
-  const { id } = req.params;
 
+//
+// ELIMINAR UN PRODUCTO POR ID
+//
+// Requiere un parametro 'id' el cual usamos para hacer un DELETE de un producto en especifico, borra el producto
+app.delete('/product/:id', async (req, res) => {
+  const { id } = req.params;
+  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const productId = parseInt(cleanedId, 10); // Convertir a entero
   try {
-    const result = connectionDB.query('DELETE FROM products WHERE id = ?', [id]);
+    // Ejecutar consulta de eliminación con 'await'
+    const [result] = await connection.query('DELETE FROM products WHERE id = ?', [productId]);
+
+    console.log('Resultado de la eliminación:', result); // Imprimir el resultado de la consulta
 
     if (result.affectedRows > 0) {
-      res.status(200).send(`Producto con ID ${id} eliminado con éxito.`);
+      res.status(200).send(`Producto con ID ${productId} eliminado con éxito.`);
     } else {
       res.status(404).send('Producto no encontrado.');
     }
@@ -116,12 +108,16 @@ app.delete('/product/:id', (req, res) => {
   }
 });
 
-// Editar un producto por ID
-app.put('/product/:id', (req, res) => {
+//
+// EDITAR UN PRODUCTO POR ID
+//
+// Requiere un parametro 'id' el cual usamos para hacer un UPDATE de un producto en especifico, edita el producto
+app.put('/product/:id', async (req, res) => {
   const { id } = req.params;
+  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const productId = parseInt(cleanedId, 10); // Convertir a entero
   const { categoryId, name, description, size, price, imagePath, colors, stock, activated } = req.body;
 
-  // Verificar si los datos obligatorios están presentes
   if (
     categoryId === undefined || 
     !name || 
@@ -137,13 +133,15 @@ app.put('/product/:id', (req, res) => {
   }
 
   try {
-    const result = connectionDB.query(
+    // Ejecutar consulta de actualización con 'await'
+    const [result] = await connection.query(
       `UPDATE products SET categoryId = ?, name = ?, description = ?, size = ?, price = ?, imagePath = ?, colors = ?, stock = ?, activated = ? WHERE id = ?`, 
-      [categoryId, name, description, size, price, imagePath, colors, stock, activated, id]
+      [categoryId, name, description, size, price, imagePath, colors, stock, activated, productId]
     );
+    console.log("Product: ", rows); 
 
     if (result.affectedRows > 0) {
-      res.status(200).send(`Producto con ID ${id} actualizado con éxito.`);
+      res.status(200).send(`Producto con ID ${productId} actualizado con éxito.`);
     } else {
       res.status(404).send('Producto no encontrado.');
     }
@@ -153,7 +151,6 @@ app.put('/product/:id', (req, res) => {
   }
 });
 
-
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`Example app listening at http://localhost:${port}`);
 });
