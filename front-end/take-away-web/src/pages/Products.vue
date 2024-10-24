@@ -7,13 +7,13 @@
       <v-col v-for="product in products" :key="product.id" cols="12" md="4">
         <v-card>
           <!-- Imagen del producto, con la ruta obtenida de la función getImagePath -->
-          <v-img :src="getImagePath(product.imagePath)" height="200px"></v-img>
+          <v-img :src="getImagePath(product.imagePath)" height="200px" :alt="`${product.name} - ${product.description}`"></v-img>
           <v-card-title>{{ product.name }}</v-card-title> <!-- Nombre del producto -->
-          <v-card-subtitle>{{ product.category }} - {{ product.color }}</v-card-subtitle> <!-- Categoría y color del producto -->
+          <v-card-subtitle>{{ product.categoryId }} - {{ product.color }}</v-card-subtitle> <!-- Categoría y color del producto -->
           <v-card-text>
             <p>{{ product.description }}</p> <!-- Descripción del producto -->
             <p><strong>Tamaño:</strong> {{ product.size }}</p> <!-- Tamaño del producto -->
-            <p><strong>Precio:</strong> ${{ product.price.toFixed(2) }}</p> <!-- Precio del producto formateado a dos decimales -->
+            <p><strong>Precio:</strong> ${{ product.price ? Number(product.price).toFixed(2) : 'N/A' }}</p> <!-- Precio del producto formateado a dos decimales -->
             <p><strong>Stock:</strong> {{ product.stock }}</p> <!-- Cantidad en stock -->
           </v-card-text>
           <v-card-actions>
@@ -27,24 +27,27 @@
 </template>
 
 <script>
+import { getAllProducts } from '@/services/communicationManager.js'; // Asegúrate de que esta ruta es correcta
 import { defineComponent, ref, onMounted } from 'vue'; // Importa funciones de Vue
-import productsData from '@/assets/products.json'; // Importa datos de productos desde un archivo JSON
-import imageImports from '@/assets/images/imageImports.js'; // Importa las imágenes
 
 export default defineComponent({
-  name: 'Products', // Nombre del componente
+  name: 'Products',
   setup() {
     const products = ref([]); // Define una referencia reactiva para los productos
 
-    // Función para cargar los productos desde el archivo JSON
-    const loadProducts = () => {
-      products.value = productsData; // Asigna los datos a la referencia
-      console.log('Productos cargados:', products.value); // Muestra los productos en la consola
+    // Función para cargar los productos desde el servicio
+    const loadProducts = async () => {
+      try {
+        products.value = await getAllProducts(); // Asigna los datos a la referencia
+        console.log('Productos cargados:', products.value); // Muestra los productos en la consola
+      } catch (error) {
+        console.error('Error al cargar productos:', error); // Muestra cualquier error
+      }
     };
 
     // Función para obtener la ruta de la imagen según el nombre del archivo
     const getImagePath = (imagePath) => {
-      return imageImports[imagePath] || ''; // Devuelve la ruta de la imagen o una cadena vacía si no se encuentra
+      return imagePath ? `/assets/images/${imagePath}` : '/assets/images/default.jpg'; // Imagen predeterminada
     };
 
     // Carga los productos cuando el componente se monta
