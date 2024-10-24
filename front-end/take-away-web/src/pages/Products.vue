@@ -43,6 +43,8 @@
         </v-card>
       </v-col>
     </v-row>
+    <!-- Mostrar el producto editado en formato JSON (opcional) -->
+    <pre>{{ productoEditado }}</pre>
   </v-container>
 </template>
 
@@ -54,6 +56,7 @@ export default defineComponent({
   name: 'Products',
   setup() {
     const products = ref([]);
+    const productoEditado = ref(null); // Variable para guardar el producto editado
 
     const loadProducts = () => {
       // Al cargar los productos, agrega un campo para manejar el estado de edición
@@ -83,7 +86,10 @@ export default defineComponent({
       product.size = product.editData.size;
       product.price = product.editData.price;
       product.stock = product.editData.stock;
-      
+
+      // Imprimir el producto editado en formato JSON en la consola
+      console.log('Producto editado:', JSON.stringify(product, null, 2));
+
       product.isEditing = false; // Sale del modo edición
     };
 
@@ -91,6 +97,7 @@ export default defineComponent({
 
     return {
       products,
+      productoEditado, // Exporta la variable para el template (opcional)
       editProduct,
       cancelEdit,
       saveProduct,
