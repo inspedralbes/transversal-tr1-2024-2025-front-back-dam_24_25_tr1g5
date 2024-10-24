@@ -4,11 +4,19 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const app = express();
-const connectionDB = require('./connectionDB');
+const connection = require('./connectionDB');
 const port = 3000;
 
 app.use(cors());
 app.use(express.json());
+
+connection((err) => {
+    if (err) {
+        console.error('Error connecting to the database:', err);
+        return;
+    }
+    console.log('Connected to the database.');
+});
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
