@@ -5,18 +5,17 @@
       <v-col v-for="product in products" :key="product.id" cols="12" md="4">
         <v-card>
           <!-- Condicional: Muestra el formulario si está en modo edición -->
-          <div if v-if="product.isEditing">
+          <div v-if="product.isEditing">
             <v-card-title>Editar Producto</v-card-title>
             <v-card-text>
               <v-form>
-                <v-text-field v-model="product.editData.name" label="Nombre" ></v-text-field>
-                <v-text-field v-model="product.editData.category" label="Categoría" ></v-text-field>
-                <v-text-field v-model="product.editData.color" label="Color" ></v-text-field>
-                <v-textarea v-model="product.editData.description" label="Descripción" ></v-textarea>
-                <v-text-field v-model="product.editData.size" label="Tamaño" ></v-text-field>
+                <v-text-field v-model="product.editData.name" label="Nombre"></v-text-field>
+                <v-text-field v-model="product.editData.category" label="Categoría"></v-text-field>
+                <v-text-field v-model="product.editData.color" label="Color"></v-text-field>
+                <v-textarea v-model="product.editData.description" label="Descripción"></v-textarea>
+                <v-text-field v-model="product.editData.size" label="Tamaño"></v-text-field>
                 <v-text-field v-model="product.editData.price" label="Precio" type="number"></v-text-field>
-                <v-text-field v-model="product.editData.stock" label="Stock" type="number"
-                ></v-text-field>
+                <v-text-field v-model="product.editData.stock" label="Stock" type="number"></v-text-field>
               </v-form>
             </v-card-text>
             <v-card-actions>
@@ -27,7 +26,7 @@
 
           <!-- Muestra la tarjeta si no está en modo edición -->
           <div v-else>
-            <v-img :src="getImagePath(product.imagePath)" height="200px"></v-img>
+            <v-img :src="product.imagePath" height="200px"></v-img> <!-- Usa la URL directamente -->
             <v-card-title>{{ product.name }}</v-card-title>
             <v-card-subtitle>{{ product.category }} - {{ product.color }}</v-card-subtitle>
             <v-card-text>
@@ -50,7 +49,6 @@
 <script>
 import { defineComponent, ref, onMounted } from 'vue';
 import productsData from '@/assets/products.json';
-import imageImports from '@/assets/images/imageImports.js'; // Importa las imágenes
 
 export default defineComponent({
   name: 'Products',
@@ -65,10 +63,6 @@ export default defineComponent({
         editData: { ...product } // Almacena los datos de edición temporalmente
       }));
       console.log('Productos cargados:', products.value);
-    };
-
-    const getImagePath = (imagePath) => {
-      return imageImports[imagePath] || ''; // Obtiene la ruta de la imagen del objeto
     };
 
     const editProduct = (product) => {
@@ -97,7 +91,6 @@ export default defineComponent({
 
     return {
       products,
-      getImagePath,
       editProduct,
       cancelEdit,
       saveProduct,
@@ -106,7 +99,7 @@ export default defineComponent({
 });
 </script>
 
-<style >
+<style>
 .v-container {
   margin-top: 20px;
 }
@@ -121,7 +114,6 @@ export default defineComponent({
 
 .v-card:hover {
   transform: scale(1.05);
-  
 }
 
 .v-img {
@@ -140,6 +132,4 @@ export default defineComponent({
 .v-card-text {
   padding-bottom: 10px;
 }
-
-
 </style>

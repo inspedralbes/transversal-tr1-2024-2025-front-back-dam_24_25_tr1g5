@@ -6,7 +6,7 @@
         "description": "Zapatillas deportivas cómodas y modernas.",
         "size": "42",
         "price": 120.99,
-        "imagePath": "nike_air_max_2021.jpg",
+        "imagePath": "https://media.revistagq.com/photos/617a5e78ad20b0acf7594c65/master/w_1600%2Cc_limit/Nike-air-max-2021-zapatillas-gv0Z2s.jpeg",
         "color": "Negro",
         "stock": 50,
         "activated": true
