@@ -2,6 +2,7 @@ const mysql = require('mysql2');
 const dataBD = require('./configDB');
 const fs = require('fs');
 const path = require('path');
+const dotenv = require('dotenv');
 
 const connection = mysql.createConnection({
     host: dataBD.host,
