@@ -4,7 +4,6 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const app = express();
-const connectionDB = require('./connectionDB'); // Pool de conexiones
 const connection = require('./connectionDB');
 const port = 3000;
 const JSON = 'productos.json';
@@ -12,6 +11,22 @@ const JSONPath = path.join(__dirname, JSON);
 
 app.use(cors());
 app.use(express.json());
+
+connection((err) => {
+    if (err) {
+        console.error('Error connecting to the database:', err);
+        return;
+    }
+    console.log('Connected to the database.');
+});
+
+connection((err) => {
+    if (err) {
+        console.error('Error connecting to the database:', err);
+        return;
+    }
+    console.log('Connected to the database.');
+});
 
 
 //
