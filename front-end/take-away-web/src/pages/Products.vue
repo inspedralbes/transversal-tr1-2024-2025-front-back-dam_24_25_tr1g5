@@ -7,13 +7,13 @@
       <v-col v-for="product in products" :key="product.id" cols="12" md="4">
         <v-card>
           <!-- Imagen del producto, con la ruta obtenida de la función getImagePath -->
-          <v-img :src="getImagePath(product.imagePath)" height="200px" :alt="`${product.name} - ${product.description}`"></v-img>
+          <v-img :src="product.imagePath" height="200px"></v-img>
           <v-card-title>{{ product.name }}</v-card-title> <!-- Nombre del producto -->
           <v-card-subtitle>{{ product.categoryId }} - {{ product.color }}</v-card-subtitle> <!-- Categoría y color del producto -->
           <v-card-text>
             <p>{{ product.description }}</p> <!-- Descripción del producto -->
             <p><strong>Tamaño:</strong> {{ product.size }}</p> <!-- Tamaño del producto -->
-            <p><strong>Precio:</strong> ${{ product.price ? Number(product.price).toFixed(2) : 'N/A' }}</p> <!-- Precio del producto formateado a dos decimales -->
+            <p><strong>Precio:</strong> ${{ Number(product.price).toFixed(2) }}</p> <!-- Precio del producto formateado a dos decimales -->
             <p><strong>Stock:</strong> {{ product.stock }}</p> <!-- Cantidad en stock -->
           </v-card-text>
           <v-card-actions>
@@ -47,7 +47,7 @@ export default defineComponent({
 
     // Función para obtener la ruta de la imagen según el nombre del archivo
     const getImagePath = (imagePath) => {
-      return imagePath ? `/assets/images/${imagePath}` : '/assets/images/default.jpg'; // Imagen predeterminada
+      return imagePath ? `/assets/images/${imagePath}` : '/assets/images/default.jpg';
     };
 
     // Carga los productos cuando el componente se monta

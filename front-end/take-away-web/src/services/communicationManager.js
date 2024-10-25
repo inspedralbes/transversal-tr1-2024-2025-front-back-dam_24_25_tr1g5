@@ -1,35 +1,29 @@
-const API_URL = 'http://localhost:3000'; // Cambia el puerto si es necesario
+const API_URL = import.meta.env.VITE_URL_BACK; // Cambia el puerto si es necesario
 
 export const getAllProducts = async () => {
   try {
-    const response = await fetch(`${API_URL}/product`, {
+    const response = await fetch(`${API_URL}product`, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        'Accept': 'application/json', // Esperamos recibir JSON
       },
     });
 
-    console.log('Response:', response); // Muestra la respuesta
-
     if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
+      throw new Error('Error al obtener los productos'); // Lanza error si la respuesta no es exitosa
     }
 
-    const contentType = response.headers.get('content-type');
-    const textResponse = await response.text(); // Obtiene la respuesta como texto
+    const data = await response.json(); // Convertimos la respuesta a JSON
+    console.log('Datos recibidos:', data); // Imprime en la terminal los datos recibidos
 
-    console.log('Text Response:', textResponse); // Muestra la respuesta como texto
-
-    if (contentType && contentType.includes('application/json')) {
-      return JSON.parse(textResponse); // Parseo manual
-    } else {
-      throw new Error('La respuesta no es un JSON.');
-    }
+    return data; // Retorna los datos
   } catch (error) {
-    console.error('Error fetching all products:', error);
-    throw error;
+    console.error('Error al obtener los productos:', error); // Imprime el error en la terminal
+    throw error; // Propaga el error para manejo posterior
   }
 };
+
+
 
 
 
