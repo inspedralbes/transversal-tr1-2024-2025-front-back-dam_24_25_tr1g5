@@ -1,9 +1,10 @@
-const createDB = require('./configDB.js');
 const mysql = require('mysql2/promise');
-const express = require('express');
 require('dotenv').config();
+const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const app = express();
+const createDB = require(path.join(__dirname, 'configDB.js')); 
 const port = process.env.PORT;
 
 app.use(cors());
