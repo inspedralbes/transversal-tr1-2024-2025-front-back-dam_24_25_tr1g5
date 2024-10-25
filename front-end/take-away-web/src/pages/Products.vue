@@ -7,7 +7,7 @@
       <v-col v-for="product in products" :key="product.id" cols="12" md="4">
         <v-card>
           <!-- Imagen del producto, con la ruta obtenida de la función getImagePath -->
-          <v-img :src="product.imagePath" height="200px"></v-img>
+          <v-img :src="getImagePath(product.imagePath)" height="200px"></v-img>
           <v-card-title>{{ product.name }}</v-card-title> <!-- Nombre del producto -->
           <v-card-subtitle>{{ product.categoryId }} - {{ product.color }}</v-card-subtitle> <!-- Categoría y color del producto -->
           <v-card-text>
@@ -47,7 +47,11 @@ export default defineComponent({
 
     // Función para obtener la ruta de la imagen según el nombre del archivo
     const getImagePath = (imagePath) => {
-      return imagePath ? `/assets/images/${imagePath}` : '/assets/images/default.jpg';
+      // return imagePath ? `/assets/images/${imagePath}` : '/assets/images/default.jpg';
+      let apiUrl = import.meta.env.VITE_URL_BACK;
+      let imageUrl = apiUrl + imagePath;
+      console.log(imageUrl)
+      return imageUrl
     };
 
     // Carga los productos cuando el componente se monta
