@@ -628,8 +628,8 @@ app.get('/order/:id', async (req, res) => {
 // AÑADIR UN PEDIDO A LA BASE DE DATOS
 // Requiere un parametro 'body', provenienet de un JSON, el cual usamos para hacer un INSERT de un pedido en especifico, añade el pedido
 app.post('/order', async (req, res) => {
-  const { userId, total, date } = req.body;
-  if (userId == undefined || total == undefined || !date) {
+  const { userId, total } = req.body;
+  if (userId == undefined || total == undefined) {
     return res.status(400).send('Datos incompletos.');
   }
 
@@ -638,8 +638,8 @@ app.post('/order', async (req, res) => {
   try {
     connection = await connectDB();
     const [result] = await connection.query(
-      'INSERT INTO orders (userId, total, date) VALUES (?, ?, ?)', 
-      [userId, total, date]
+      'INSERT INTO orders (userId, total) VALUES (?, ?)', 
+      [userId, total]
     );
     res.status(201).send('Pedido añadido con éxito.');
   } catch (error) {
@@ -686,10 +686,10 @@ app.put('/order/:id', async (req, res) => {
   const { id } = req.params;
   const cleanedId = id.replace(/[^0-9]/g, ''); 
   const orderId = parseInt(cleanedId, 10); // Convertir a entero
-  const { userId, total, date, status } = req.body;
+  const { userId, total, status } = req.body;
   let connection;
 
-  if (userId == undefined || total == undefined || !date || !status) {
+  if (userId == undefined || total == undefined || !status) {
     return res.status(400).send('Datos incompletos.');
   }
 
@@ -697,8 +697,8 @@ app.put('/order/:id', async (req, res) => {
     connection = await connectDB();
     // Ejecutar consulta de actualización con 'await'
     const [result] = await connection.query(
-      `UPDATE orders SET userId = ?, total = ?, date = ?, status = ? WHERE id = ?`, 
-      [userId, total, date, status, orderId]
+      `UPDATE orders SET userId = ?, total = ?, status = ? WHERE id = ?`, 
+      [userId, total, status, orderId]
     );
 
     if (result.affectedRows > 0) {

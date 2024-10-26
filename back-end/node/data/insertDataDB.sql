@@ -29,13 +29,13 @@ INSERT INTO products (categoryId, name, description, size, price, imagePath, col
     (3, 'Bufanda de Llana', 'Bufanda càlida de llana natural, perfecta per als dies freds. Suau al tacte i disponible en diferents colors elegants per combinar amb qualsevol abric.', NULL, 24.99, 'assets/bufanda.jpg', 'Gris,Rosa', 50, 1);
 
 INSERT INTO orders (total, userId, date, status) VALUES 
-    (75.98, 1, '2023-10-01', 'Entregat'),
-    (89.99, 2, '2023-10-02', 'Preparant'),
-    (70.98, 3, '2023-10-03', 'Pendent');
+    (75.98, 1, 'Entregat'),
+    (89.99, 2, 'Preparant'),
+    (70.98, 3, 'Pendent');
 
 INSERT INTO orderlines (orderID, productId, productPrice, date) VALUES 
-    (1, 1, 15.99, '2023-10-01'),
-    (1, 4, 59.99, '2023-10-01'),
-    (2, 5, 89.99, '2023-10-02'),
-    (3, 7, 45.99, '2023-10-03'),
-    (3, 9, 24.99, '2023-10-03');
+    (1, 1, 15.99),
+    (1, 4, 59.99),
+    (2, 5, 89.99),
+    (3, 7, 45.99),
+    (3, 9, 24.99);
