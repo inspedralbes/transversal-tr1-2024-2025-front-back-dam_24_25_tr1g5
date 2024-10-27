@@ -1,0 +1,8 @@
+{
+    "userId": "user_id_value",
+    "cardName": "card_name_value",
+    "expirationDate": "MM/YY",
+    "cvc": "cvc_value",
+    "cardNumber": "card_number_value"
+  }
+  

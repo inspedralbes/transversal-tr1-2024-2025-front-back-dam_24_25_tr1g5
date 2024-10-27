@@ -1,0 +1,14 @@
+[
+    {
+      "id": 1,
+      "categoryId": 1,
+      "name": "Samarreta Bàsica",
+      "description": "Samarreta de cotó suau, ideal per al dia a dia. Ofereix una gran comoditat i un disseny senzill que combina amb tot tipus de roba casual.",
+      "size": "M",
+      "price": "15.99",
+      "imagePath": "assets/samarreta_basica.jpg",
+      "colors": "Blanc,Negre",
+      "stock": 100,
+      "activated": 1
+    }
+  ]
