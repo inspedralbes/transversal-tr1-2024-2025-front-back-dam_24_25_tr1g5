@@ -10,8 +10,8 @@ INSERT INTO categories (name) VALUES
     ('Accesoris');
 
 INSERT INTO cards (userId, cardName, expirationDate, cvv, cardNumber) VALUES 
-    (1, 'John Doe', '2025-06-30', 123, '1111222233334444'),
-    (3, 'Alice Brown', '2026-12-01', 789, '9999000011112222');
+    (1, 'John Doe', '12/25', 123, '1111222233334444'),
+    (3, 'Alice Brown', '12/26', 789, '9999000011112222');
 
 INSERT INTO products (categoryId, name, description, size, price, imagePath, color, stock, activated) VALUES 
     (1, 'Samarreta Bàsica', 'Samarreta de cotó suau, ideal per al dia a dia. Ofereix una gran comoditat i un disseny senzill que combina amb tot tipus de roba casual.', 'M', 15.99, 'assets/samarreta_basica.jpg', 'Blanc', 100, 1),

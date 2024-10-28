@@ -765,8 +765,8 @@ app.put('/creditCard/:id', async (req, res) => {
     connection = await connectDB();
     // Ejecutar consulta de actualización con 'await'
     const [result] = await connection.query(
-      `UPDATE cards SET userId = ?, cardName = ?, cardNumber = ?, expirationDate = ?, cvv = ? WHERE id = ?`, 
-      [userId, cardName, cardNumber, expirationDate, cvv, cardId]
+      `UPDATE cards SET cardName = ?, cardNumber = ?, expirationDate = ?, cvv = ? WHERE id = ? AND userId = ?`, 
+      [cardName, cardNumber, expirationDate, cvv, cardId, userId]
     );
 
     if (result.affectedRows > 0) {

@@ -1,0 +1,7 @@
+{
+    "userId": 1,
+    "cardName": "John Doe",
+    "cardNumber": "1234567812345678",
+    "expirationDate": "12/25",
+    "cvv": "123"
+}
