@@ -1,0 +1,110 @@
+[
+    {
+        "id": 1,
+        "categoryId": 1,
+        "name": "Samarreta Bàsica",
+        "description": "Samarreta de cotó suau, ideal per al dia a dia. Ofereix una gran comoditat i un disseny senzill que combina amb tot tipus de roba casual.",
+        "size": "M",
+        "price": "15.99",
+        "imagePath": "assets/samarreta_basica.jpg",
+        "colors": "Blanc,Negre",
+        "stock": 100,
+        "activated": 1
+    },
+    {
+        "id": 2,
+        "categoryId": 1,
+        "name": "Pantalons Texans",
+        "description": "Pantalons de mezclilla clàssics amb tall modern i estil atemporal. Perfectes per a qualsevol ocasió, amb una gran resistència i un ajust còmode.",
+        "size": "32",
+        "price": "49.99",
+        "imagePath": "assets/pantalons_texans.jpg",
+        "colors": "Blau",
+        "stock": 50,
+        "activated": 1
+    },
+    {
+        "id": 3,
+        "categoryId": 1,
+        "name": "Dessuatadora amb Caputxa",
+        "description": "Dessuatadora unisex amb caputxa, feta de material lleuger però càlid. Ideal per a les tardes fresques, ofereix un estil esportiu i desenfadat.",
+        "size": "L",
+        "price": "29.99",
+        "imagePath": "assets/dessuatadora.jpg",
+        "colors": "Gris,Negre",
+        "stock": 75,
+        "activated": 1
+    },
+    {
+        "id": 4,
+        "categoryId": 2,
+        "name": "Sabatilles Esportives",
+        "description": "Sabatilles esportives lleugeres i còmodes, dissenyades per a activitats físiques o ús diari. Proporcionen un bon suport al peu i un estil modern.",
+        "size": "42",
+        "price": "59.99",
+        "imagePath": "assets/sabatilles.jpg",
+        "colors": "Vermell,Blau",
+        "stock": 30,
+        "activated": 1
+    },
+    {
+        "id": 5,
+        "categoryId": 2,
+        "name": "Botes de Cuir",
+        "description": "Botes elegants fabricades en cuir de gran qualitat, amb un disseny clàssic que combina amb roba formal o casual. Duradores i còmodes per a tot el dia.",
+        "size": "40",
+        "price": "89.99",
+        "imagePath": "assets/botes_cuir.jpg",
+        "colors": "Marró,Negre",
+        "stock": 20,
+        "activated": 1
+    },
+    {
+        "id": 6,
+        "categoryId": 2,
+        "name": "Sandàlies",
+        "description": "Sandàlies lleugeres i fresques, perfectes per a l’estiu. Dissenyades amb corretges ajustables per garantir un bon ajust i comoditat durant llargues caminades.",
+        "size": "39",
+        "price": "19.99",
+        "imagePath": "assets/sandalies.jpg",
+        "colors": "Beix,Blanc",
+        "stock": 60,
+        "activated": 1
+    },
+    {
+        "id": 7,
+        "categoryId": 3,
+        "name": "Bossa de Mà",
+        "description": "Bossa de mà de cuir sintètic amb gran capacitat per a ús diari. Combina funcionalitat i estil, amb múltiples compartiments per organitzar els teus objectes personals.",
+        "size": null,
+        "price": "45.99",
+        "imagePath": "assets/bossa.jpg",
+        "colors": "Negre,Marró",
+        "stock": 40,
+        "activated": 1
+    },
+    {
+        "id": 8,
+        "categoryId": 3,
+        "name": "Gorra",
+        "description": "Gorra ajustable de cotó amb disseny casual i esportiu. Ideal per protegir-se del sol o per complementar un look desenfadat.",
+        "size": null,
+        "price": "12.99",
+        "imagePath": "assets/gorra.jpg",
+        "colors": "Blau,Verd",
+        "stock": 120,
+        "activated": 1
+    },
+    {
+        "id": 9,
+        "categoryId": 3,
+        "name": "Bufanda de Llana",
+        "description": "Bufanda càlida de llana natural, perfecta per als dies freds. Suau al tacte i disponible en diferents colors elegants per combinar amb qualsevol abric.",
+        "size": null,
+        "price": "24.99",
+        "imagePath": "assets/bufanda.jpg",
+        "colors": "Gris,Rosa",
+        "stock": 50,
+        "activated": 1
+    }
+]

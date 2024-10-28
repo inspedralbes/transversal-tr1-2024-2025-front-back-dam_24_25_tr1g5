@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const multer = require('multer');
 const app = express();
 const createDB = require(path.join(__dirname, 'configDB.js')); 
 const port = process.env.PORT;
@@ -10,11 +11,11 @@ const port = process.env.PORT;
 app.use(cors());
 app.use(express.json());
 
-// // CREAR UNA BASE DE DATOS
-// // Ejecuta la función createDB que se encuentra en el archivo configDB.js
-// (async () => {
-//   await createDB();
-// })();
+// CREAR UNA BASE DE DATOS
+// Ejecuta la función createDB que se encuentra en el archivo configDB.js
+(async () => {
+  await createDB();
+})();
 
 // CONEXIÓN A LA BASE DE DATOS
 // Hace una conexión a la base de datos usando los datos del archivo .env
@@ -35,6 +36,18 @@ async function connectDB() {
     console.error('Error connecting to the database: ', error);
   }
 }
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+      cb(null, 'public/'); 
+  },
+  filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + path.extname(file.originalname)); 
+  }
+});
+
+const upload = multer({ storage: storage });
 
 app.use('/assets', express.static('public'));
 
@@ -77,7 +90,7 @@ app.get('/productUser', async (req, res) => {
 
 // VER UN PRODUCTO ESPECÍFICO
 // Requiere un parametro 'id' el cual usamos para hacer un SELECT de un producto en especifico, muestra el producto
-app.get('/product/:id', async (req, res) => {
+app.get('/productUser/:id', async (req, res) => {
   const { id } = req.params;
   const cleanedId = id.replace(/[^0-9]/g, ''); 
   const productId = parseInt(cleanedId, 10); // Convertir a entero
@@ -100,19 +113,20 @@ app.get('/product/:id', async (req, res) => {
 
 // AÑADIR UN PRODUCTO A LA BASE DE DATOS
 // Requiere un parametro 'body', provenienet de un JSON, el cual usamos para hacer un INSERT de un producto en especifico, añade el producto
-app.post('/product', async (req, res) => {
-  const { categoryId, name, description, size, price, imagePath, colors, stock, activated } = req.body;
-  if (categoryId == undefined || !name || !description || !size || price == undefined || !imagePath || !colors || stock == undefined || activated == undefined) {
+app.post('/product', upload.single('image'), async (req, res) => {
+  const { categoryId, name, description, size, price, color, stock, activated } = req.body;
+  if (categoryId == undefined || !name || !description || !size || price == undefined || !color || stock == undefined || activated == undefined) {
     return res.status(400).send('Datos incompletos.');
   }
 
   let connection;
 
   try {
+    const imagePath = req.file.path;
     connection = await connectDB();
     const [result] = await connection.query(
-      'INSERT INTO products (categoryId, name, description, size, price, imagePath, colors, stock, activated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
-      [categoryId, name, description, size, price, imagePath, colors, stock, activated]
+      'INSERT INTO products (categoryId, name, description, size, price, imagePath, color, stock, activated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
+      [categoryId, name, description, size, price, imagePath, color, stock, activated]
     );
     res.status(201).send('Producto añadido con éxito.');
     console.log()
@@ -156,23 +170,24 @@ app.delete('/product/:id', async (req, res) => {
 
 // EDITAR UN PRODUCTO POR ID
 // Requiere un parametro 'id' el cual usamos para hacer un UPDATE de un producto en especifico, edita el producto
-app.put('/product/:id', async (req, res) => {
+app.put('/product/:id', upload.single('image'), async (req, res) => {
   const { id } = req.params;
   const cleanedId = id.replace(/[^0-9]/g, ''); 
   const productId = parseInt(cleanedId, 10); // Convertir a entero
-  const { categoryId, name, description, size, price, imagePath, colors, stock, activated } = req.body;
+  const { categoryId, name, description, size, price, color, stock, activated } = req.body;
   let connection;
 
-  if ( categoryId == undefined || !name || !description || !size || price == undefined || !imagePath || !colors || stock == undefined || activated == undefined ) {
+  if ( categoryId == undefined || !name || !description || !size || price == undefined || !color || stock == undefined || activated == undefined ) {
     return res.status(400).send('Datos incompletos.');
   }
 
   try {
+    const imagePath = req.file.path;
     connection = await connectDB();
     // Ejecutar consulta de actualización con 'await'
     const [result] = await connection.query(
-      `UPDATE products SET categoryId = ?, name = ?, description = ?, size = ?, price = ?, imagePath = ?, colors = ?, stock = ?, activated = ? WHERE id = ?`, 
-      [categoryId, name, description, size, price, imagePath, colors, stock, activated, productId]
+      `UPDATE products SET categoryId = ?, name = ?, description = ?, size = ?, price = ?, imagePath = ?, color = ?, stock = ?, activated = ? WHERE id = ?`, 
+      [categoryId, name, description, size, price, imagePath, color, stock, activated, productId]
     );
 
     if (result.affectedRows > 0) {
@@ -314,269 +329,6 @@ app.put('/category/:id', async (req, res) => {
   } catch (error) {
     console.error('Error al actualizar la categoria:', error);
     res.status(500).send('Error al actualizar la categoria.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// CRUD DE USUARIOS
-// VER TODOS LOS USUARIOS
-// Hace un SELECT de la tabla usuarios, muestra todos los usuarios
-app.get('/user', async (req, res) => {
-  let connection;
-  try {
-    connection = await connectDB();
-    const [rows] = await connection.query('SELECT * FROM users');
-    console.log("Users: ", rows);
-    res.json(rows);
-  } catch (error) {
-    console.error('Error fetching users:', error); 
-    res.status(500).send('Error fetching users.');
-  } finally {
-    connection.end();
-  }
-});
-
-// VER UN USUARIO ESPECÍFICO
-// Requiere un parametro 'id' el cual usamos para hacer un SELECT de un usuario en especifico, muestra el usuario
-app.get('/user/:id', async (req, res) => {
-  const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
-  const userId = parseInt(cleanedId, 10); // Convertir a entero
-
-  let connection;
-
-  try {
-    connection = await connectDB();
-    const [rows] = await connection.query('SELECT * FROM users WHERE id = ?', [userId]);
-    console.log("User: ", rows); 
-    res.json(rows);
-  } catch (error) {
-    console.error('Error fetching user:', error); 
-    res.status(500).send('Error fetching user.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// AÑADIR UN USUARIO A LA BASE DE DATOS
-// Requiere un parametro 'body', provenienet de un JSON, el cual usamos para hacer un INSERT de un usuario en especifico, añade el usuario
-app.post('/user', async (req, res) => {
-  const { firstName, lastName, email, password, typeUserId } = req.body;
-  if (!firstName || !lastName || !email || !password || !typeUserId) {
-    return res.status(400).send('Datos incompletos.');
-  }
-
-  let connection;
-
-  try {
-    connection = await connectDB();
-    const [result] = await connection.query(
-      'INSERT INTO users (firstName, lastName, email, password, typeUserId) VALUES (?, ?, ?, ?, ?)', 
-      [firstName, lastName, email, password, typeUserId]
-    );
-    res.status(201).send('Usuario añadido con éxito.');
-  } catch (error) {
-    console.error('Error adding user:', error);
-    res.status(500).send('Error adding user.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// ELIMINAR UN USUARIO POR ID
-// Requiere un parametro 'id' el cual usamos para hacer un DELETE de un usuario en especifico, borra el usuario
-app.delete('/user/:id', async (req, res) => {
-  const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
-  const userId = parseInt(cleanedId, 10); // Convertir a entero
-  let connection;
-
-  try {
-    // Ejecutar consulta de eliminación con 'await'
-    connection = await connectDB();
-    const [result] = await connection.query('DELETE FROM users WHERE id = ?', [userId]);
-
-    console.log('Resultado de la eliminación:', result); // Imprimir el resultado de la consulta
-
-    if (result.affectedRows > 0) {
-      res.status(200).send(`Usuario con ID ${userId} eliminado con éxito.`);
-    } else {
-      res.status(404).send('Usuario no encontrado.');
-    }
-  } catch (error) {
-    console.error('Error al eliminar el usuario:', error);
-    res.status(500).send('Error al eliminar el usuario.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// EDITAR UN USUARIO POR ID
-// Requiere un parametro 'id' el cual usamos para hacer un UPDATE de un usuario en especifico, edita el usuario
-app.put('/user/:id', async (req, res) => {
-  const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
-  const userId = parseInt(cleanedId, 10); // Convertir a entero
-  const { firstName, lastName, email, password } = req.body;
-  let connection;
-
-  if (!firstName || !lastName || !email || !password) {
-    return res.status(400).send('Datos incompletos.');
-  }
-
-  try {
-    connection = await connectDB();
-    // Ejecutar consulta de actualización con 'await'
-    const [result] = await connection.query(
-      `UPDATE users SET firstName = ?, lastName = ?, email = ?, password = ? WHERE id = ?`, 
-      [firstName, lastName, email, password, userId]
-    );
-
-    if (result.affectedRows > 0) {
-      res.status(200).send(`Usuario con ID ${userId} actualizado con éxito.`);
-    } else {
-      res.status(404).send('Usuario no encontrado.');
-    }
-  } catch (error) {
-    console.error('Error al actualizar el usuario:', error);
-    res.status(500).send('Error al actualizar el usuario.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// CRUD DE TIPOS DE USUARIOS
-// VER TODOS LOS TIPOS DE USUARIOS
-// Hace un SELECT de la tabla tipos de usuarios, muestra todos los tipos de usuarios
-app.get('/typeUser', async (req, res) => {
-  let connection;
-  try {
-    connection = await connectDB();
-    const [rows] = await connection.query('SELECT * FROM typesusers');
-    console.log("TypesUsers: ", rows);
-    res.json(rows);
-  } catch (error) {
-    console.error('Error fetching typesUsers:', error); 
-    res.status(500).send('Error fetching typesUsers.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// VER UN TIPO DE USUARIO ESPECÍFICO
-// Requiere un parametro 'id' el cual usamos para hacer un SELECT de un tipo de usuario en especifico, muestra el tipo de usuario
-app.get('/typeUser/:id', async (req, res) => {
-  const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
-  const typeUserId = parseInt(cleanedId, 10); // Convertir a entero
-
-  let connection;
-
-  try {
-    connection = await connectDB();
-    const [rows] = await connection.query('SELECT * FROM typesUsers WHERE id = ?', [typeUserId]);
-    console.log("TypesUsers: ", rows); 
-    res.json(rows);
-  } catch (error) {
-    console.error('Error fetching typesUsers:', error); 
-    res.status(500).send('Error fetching typesUsers.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// AÑADIR UN TIPO DE USUARIO A LA BASE DE DATOS
-// Requiere un parametro 'body', provenienet de un JSON, el cual usamos para hacer un INSERT de un tipo de usuario en especifico, añade el tipo de usuario
-app.post('/typeUser', async (req, res) => {
-  const { name } = req.body;
-  if (!name) {
-    return res.status(400).send('Datos incompletos.');
-  }
-
-  let connection;
-
-  try {
-    connection = await connectDB();
-    const [result] = await connection.query(
-      'INSERT INTO typesusers (name) VALUES (?)', 
-      [name]
-    );
-    res.status(201).send('Tipo de usuario añadido con éxito.');
-  } catch (error) {
-    console.error('Error adding typesUsers:', error);
-    res.status(500).send('Error adding typesUsers.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// ELIMINAR UN TIPO DE USUARIO POR ID
-// Requiere un parametro 'id' el cual usamos para hacer un DELETE de un tipo de usuario en especifico, borra el tipo de usuario
-app.delete('/typeUser/:id', async (req, res) => {
-  const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
-  const typeUserId = parseInt(cleanedId, 10); // Convertir a entero
-  let connection;
-
-  try {
-    // Ejecutar consulta de eliminación con 'await'
-    connection = await connectDB();
-    const [result] = await connection.query('DELETE FROM typesusers WHERE id = ?', [typeUserId]);
-
-    console.log('Resultado de la eliminación:', result); // Imprimir el resultado de la consulta
-
-    if (result.affectedRows > 0) {
-      res.status(200).send(`Tipo de usuario con ID ${typeUserId} eliminado con éxito.`);
-    } else {
-      res.status(404).send('Tipo de usuario no encontrado.');
-    }
-  } catch (error) {
-    console.error('Error al eliminar el tipo de usuario:', error);
-    res.status(500).send('Error al eliminar el tipo de usuario.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// EDITAR UN TIPO DE USUARIO POR ID
-// Requiere un parametro 'id' el cual usamos para hacer un UPDATE de un tipo de usuario en especifico, edita el tipo de usuario
-app.put('/typeUser/:id', async (req, res) => {
-  const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
-  const typeUserId = parseInt(cleanedId, 10); // Convertir a entero
-  const { name } = req.body;
-  let connection;
-
-  if (!name) {
-    return res.status(400).send('Datos incompletos.');
-  }
-
-  try {
-    connection = await connectDB();
-    // Ejecutar consulta de actualización con 'await'
-    const [result] = await connection.query(
-      `UPDATE typesusers SET name = ? WHERE id = ?`, 
-      [name, typeUserId]
-    );
-
-    if (result.affectedRows > 0) {
-      res.status(200).send(`Tipo de usuario con ID ${typeUserId} actualizado con éxito.`);
-    } else {
-      res.status(404).send('Tipo de usuario no encontrado.');
-    }
-  } catch (error) {
-    console.error('Error al actualizar el tipo de usuario:', error);
-    res.status(500).send('Error al actualizar el tipo de usuario.');
   } finally {
     connection.end();
     console.log("Connection closed.");
@@ -841,6 +593,269 @@ app.put('/orderLine/:id', async (req, res) => {
   } catch (error) {
     console.error('Error al actualizar la linea de pedido:', error);
     res.status(500).send('Error al actualizar la linea de pedido.');
+  } finally {
+    connection.end();
+    console.log("Connection closed.");
+  }
+});
+
+// CRUD DE USUARIOS
+// VER TODOS LOS USUARIOS
+// Hace un SELECT de la tabla usuarios, muestra todos los usuarios
+app.get('/user', async (req, res) => {
+  let connection;
+  try {
+    connection = await connectDB();
+    const [rows] = await connection.query('SELECT * FROM users');
+    console.log("Users: ", rows);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching users:', error); 
+    res.status(500).send('Error fetching users.');
+  } finally {
+    connection.end();
+  }
+});
+
+// VER UN USUARIO ESPECÍFICO
+// Requiere un parametro 'id' el cual usamos para hacer un SELECT de un usuario en especifico, muestra el usuario
+app.get('/user/:id', async (req, res) => {
+  const { id } = req.params;
+  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const userId = parseInt(cleanedId, 10); // Convertir a entero
+
+  let connection;
+
+  try {
+    connection = await connectDB();
+    const [rows] = await connection.query('SELECT * FROM users WHERE id = ?', [userId]);
+    console.log("User: ", rows); 
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching user:', error); 
+    res.status(500).send('Error fetching user.');
+  } finally {
+    connection.end();
+    console.log("Connection closed.");
+  }
+});
+
+// AÑADIR UN USUARIO A LA BASE DE DATOS
+// Requiere un parametro 'body', provenienet de un JSON, el cual usamos para hacer un INSERT de un usuario en especifico, añade el usuario
+app.post('/user', async (req, res) => {
+  const { firstName, lastName, email, password, typeUserId } = req.body;
+  if (!firstName || !lastName || !email || !password || !typeUserId) {
+    return res.status(400).send('Datos incompletos.');
+  }
+
+  let connection;
+
+  try {
+    connection = await connectDB();
+    const [result] = await connection.query(
+      'INSERT INTO users (firstName, lastName, email, password, typeUserId) VALUES (?, ?, ?, ?, ?)', 
+      [firstName, lastName, email, password, typeUserId]
+    );
+    res.status(201).send('Usuario añadido con éxito.');
+  } catch (error) {
+    console.error('Error adding user:', error);
+    res.status(500).send('Error adding user.');
+  } finally {
+    connection.end();
+    console.log("Connection closed.");
+  }
+});
+
+// ELIMINAR UN USUARIO POR ID
+// Requiere un parametro 'id' el cual usamos para hacer un DELETE de un usuario en especifico, borra el usuario
+app.delete('/user/:id', async (req, res) => {
+  const { id } = req.params;
+  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const userId = parseInt(cleanedId, 10); // Convertir a entero
+  let connection;
+
+  try {
+    // Ejecutar consulta de eliminación con 'await'
+    connection = await connectDB();
+    const [result] = await connection.query('DELETE FROM users WHERE id = ?', [userId]);
+
+    console.log('Resultado de la eliminación:', result); // Imprimir el resultado de la consulta
+
+    if (result.affectedRows > 0) {
+      res.status(200).send(`Usuario con ID ${userId} eliminado con éxito.`);
+    } else {
+      res.status(404).send('Usuario no encontrado.');
+    }
+  } catch (error) {
+    console.error('Error al eliminar el usuario:', error);
+    res.status(500).send('Error al eliminar el usuario.');
+  } finally {
+    connection.end();
+    console.log("Connection closed.");
+  }
+});
+
+// EDITAR UN USUARIO POR ID
+// Requiere un parametro 'id' el cual usamos para hacer un UPDATE de un usuario en especifico, edita el usuario
+app.put('/user/:id', async (req, res) => {
+  const { id } = req.params;
+  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const userId = parseInt(cleanedId, 10); // Convertir a entero
+  const { firstName, lastName, email, password } = req.body;
+  let connection;
+
+  if (!firstName || !lastName || !email || !password) {
+    return res.status(400).send('Datos incompletos.');
+  }
+
+  try {
+    connection = await connectDB();
+    // Ejecutar consulta de actualización con 'await'
+    const [result] = await connection.query(
+      `UPDATE users SET firstName = ?, lastName = ?, email = ?, password = ? WHERE id = ?`, 
+      [firstName, lastName, email, password, userId]
+    );
+
+    if (result.affectedRows > 0) {
+      res.status(200).send(`Usuario con ID ${userId} actualizado con éxito.`);
+    } else {
+      res.status(404).send('Usuario no encontrado.');
+    }
+  } catch (error) {
+    console.error('Error al actualizar el usuario:', error);
+    res.status(500).send('Error al actualizar el usuario.');
+  } finally {
+    connection.end();
+    console.log("Connection closed.");
+  }
+});
+
+// CRUD DE TIPOS DE USUARIOS
+// VER TODOS LOS TIPOS DE USUARIOS
+// Hace un SELECT de la tabla tipos de usuarios, muestra todos los tipos de usuarios
+app.get('/typeUser', async (req, res) => {
+  let connection;
+  try {
+    connection = await connectDB();
+    const [rows] = await connection.query('SELECT * FROM typesusers');
+    console.log("TypesUsers: ", rows);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching typesUsers:', error); 
+    res.status(500).send('Error fetching typesUsers.');
+  } finally {
+    connection.end();
+    console.log("Connection closed.");
+  }
+});
+
+// VER UN TIPO DE USUARIO ESPECÍFICO
+// Requiere un parametro 'id' el cual usamos para hacer un SELECT de un tipo de usuario en especifico, muestra el tipo de usuario
+app.get('/typeUser/:id', async (req, res) => {
+  const { id } = req.params;
+  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const typeUserId = parseInt(cleanedId, 10); // Convertir a entero
+
+  let connection;
+
+  try {
+    connection = await connectDB();
+    const [rows] = await connection.query('SELECT * FROM typesUsers WHERE id = ?', [typeUserId]);
+    console.log("TypesUsers: ", rows); 
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching typesUsers:', error); 
+    res.status(500).send('Error fetching typesUsers.');
+  } finally {
+    connection.end();
+    console.log("Connection closed.");
+  }
+});
+
+// AÑADIR UN TIPO DE USUARIO A LA BASE DE DATOS
+// Requiere un parametro 'body', provenienet de un JSON, el cual usamos para hacer un INSERT de un tipo de usuario en especifico, añade el tipo de usuario
+app.post('/typeUser', async (req, res) => {
+  const { name } = req.body;
+  if (!name) {
+    return res.status(400).send('Datos incompletos.');
+  }
+
+  let connection;
+
+  try {
+    connection = await connectDB();
+    const [result] = await connection.query(
+      'INSERT INTO typesusers (name) VALUES (?)', 
+      [name]
+    );
+    res.status(201).send('Tipo de usuario añadido con éxito.');
+  } catch (error) {
+    console.error('Error adding typesUsers:', error);
+    res.status(500).send('Error adding typesUsers.');
+  } finally {
+    connection.end();
+    console.log("Connection closed.");
+  }
+});
+
+// ELIMINAR UN TIPO DE USUARIO POR ID
+// Requiere un parametro 'id' el cual usamos para hacer un DELETE de un tipo de usuario en especifico, borra el tipo de usuario
+app.delete('/typeUser/:id', async (req, res) => {
+  const { id } = req.params;
+  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const typeUserId = parseInt(cleanedId, 10); // Convertir a entero
+  let connection;
+
+  try {
+    // Ejecutar consulta de eliminación con 'await'
+    connection = await connectDB();
+    const [result] = await connection.query('DELETE FROM typesusers WHERE id = ?', [typeUserId]);
+
+    console.log('Resultado de la eliminación:', result); // Imprimir el resultado de la consulta
+
+    if (result.affectedRows > 0) {
+      res.status(200).send(`Tipo de usuario con ID ${typeUserId} eliminado con éxito.`);
+    } else {
+      res.status(404).send('Tipo de usuario no encontrado.');
+    }
+  } catch (error) {
+    console.error('Error al eliminar el tipo de usuario:', error);
+    res.status(500).send('Error al eliminar el tipo de usuario.');
+  } finally {
+    connection.end();
+    console.log("Connection closed.");
+  }
+});
+
+// EDITAR UN TIPO DE USUARIO POR ID
+// Requiere un parametro 'id' el cual usamos para hacer un UPDATE de un tipo de usuario en especifico, edita el tipo de usuario
+app.put('/typeUser/:id', async (req, res) => {
+  const { id } = req.params;
+  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const typeUserId = parseInt(cleanedId, 10); // Convertir a entero
+  const { name } = req.body;
+  let connection;
+
+  if (!name) {
+    return res.status(400).send('Datos incompletos.');
+  }
+
+  try {
+    connection = await connectDB();
+    // Ejecutar consulta de actualización con 'await'
+    const [result] = await connection.query(
+      `UPDATE typesusers SET name = ? WHERE id = ?`, 
+      [name, typeUserId]
+    );
+
+    if (result.affectedRows > 0) {
+      res.status(200).send(`Tipo de usuario con ID ${typeUserId} actualizado con éxito.`);
+    } else {
+      res.status(404).send('Tipo de usuario no encontrado.');
+    }
+  } catch (error) {
+    console.error('Error al actualizar el tipo de usuario:', error);
+    res.status(500).send('Error al actualizar el tipo de usuario.');
   } finally {
     connection.end();
     console.log("Connection closed.");
