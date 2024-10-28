@@ -1,0 +1,10 @@
+[
+    {
+        "id": 2,
+        "email": "janesmith@gmail.com",
+        "password": "securepass456",
+        "firstName": "Jane",
+        "lastName": "Smith",
+        "paymentMethod": 0
+    }
+]

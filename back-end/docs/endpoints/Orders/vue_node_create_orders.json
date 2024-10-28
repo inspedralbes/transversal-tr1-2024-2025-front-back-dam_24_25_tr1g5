@@ -1,0 +1,18 @@
+{
+    "total": {
+        "totalPrice": "229.97",
+        "userId": 2
+    },
+    "products": [
+        {
+            "id": 5,
+            "price": "89.99",
+            "quantity": 2
+        },
+        {
+            "id": 2,
+            "price": "49.99",
+            "quantity": 1
+        }
+    ]
+}

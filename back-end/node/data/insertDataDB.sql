@@ -1,12 +1,8 @@
-INSERT INTO typesusers (name) VALUES 
-    ('Client'),
-    ('Admin');
-
-INSERT INTO users (password, typeUserId, email, firstName, lastName, paymentMethod) VALUES 
-    ('password123', 1, 'johndoe@gmail.com', 'John', 'Doe', 1),
-    ('securepass456', 1, 'janesmith@gmail.com', 'Jane', 'Smith', 0),
-    ('mypass789', 2, 'alicebrown@gmail.com', 'Alice', 'Brown', 1),
-    ('password234', 1, 'bobjohnson@gmail.com', 'Bob', 'Johnson', 0);
+INSERT INTO users (password, email, firstName, lastName, paymentMethod) VALUES 
+    ('password123', 'johndoe@gmail.com', 'John', 'Doe', 1),
+    ('securepass456', 'janesmith@gmail.com', 'Jane', 'Smith', 0),
+    ('mypass789', 'alicebrown@gmail.com', 'Alice', 'Brown', 1),
+    ('password234', 'bobjohnson@gmail.com', 'Bob', 'Johnson', 0);
 
 INSERT INTO categories (name) VALUES 
     ('Roba'),

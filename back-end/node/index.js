@@ -365,9 +365,29 @@ app.get('/orders/:id', async (req, res) => {
 
   try {
     connection = await connectDB();
-    const [rows] = await connection.query('SELECT * FROM orders WHERE id = ?', [orderId]);
-    console.log("Order: ", rows); 
-    res.json(rows);
+    const [orderRows] = await connection.query('SELECT * FROM orders WHERE id = ?', [orderId]);
+    
+
+    if (orderRows.length == 0) {
+      return res.status(404).send('Order not found.');
+    }
+
+    const [orderLineRows] = await connection.query('SELECT * FROM orderlines WHERE orderId = ?', [orderId]);
+
+    const products = [];
+    for (let i = 0; i < orderLineRows.length; i++) {
+      const product = await connection.query('SELECT * FROM products WHERE id = ?', [orderLineRows[i].productId]);
+      products.push(product[0][0]);
+    }
+
+    const orderDetails = {
+      order : orderRows[0],
+      orderLines : orderLineRows,
+      products : products
+    };
+
+    console.log("Order Details: ", orderDetails); 
+    res.json(orderDetails);
   } catch (error) {
     console.error('Error fetching order:', error); 
     res.status(500).send('Error fetching order.');
@@ -380,8 +400,10 @@ app.get('/orders/:id', async (req, res) => {
 // AÑADIR UN PEDIDO A LA BASE DE DATOS
 // Requiere un parametro 'body', provenienet de un JSON, el cual usamos para hacer un INSERT de un pedido en especifico, añade el pedido
 app.post('/orders', async (req, res) => {
-  const { userId, total } = req.body;
-  if (userId == undefined || total == undefined) {
+  const { total, products } = req.body;
+  const { totalPrice, userId } = total;
+
+  if (userId == undefined || totalPrice == undefined || !Array.isArray(products)) {
     return res.status(400).send('Datos incompletos.');
   }
 
@@ -389,16 +411,40 @@ app.post('/orders', async (req, res) => {
 
   try {
     connection = await connectDB();
+    await connection.beginTransaction();
+
+    // Insertar el pedido en la tabla orders
     const [result] = await connection.query(
       'INSERT INTO orders (userId, total) VALUES (?, ?)', 
-      [userId, total]
+      [userId, totalPrice]
     );
-    res.status(201).send('Pedido añadido con éxito.');
+
+    const orderId = result.insertId;
+
+    // Insertar las líneas de pedido en la tabla orderlines
+    for (const product of products) {
+      const { id: productId, price: productPrice, quantity } = product;
+      if (productId == undefined || productPrice == undefined || quantity == undefined) {
+        await connection.rollback();
+        return res.status(400).send('Datos incompletos en products.');
+      }
+
+      for (let i = 0; i < quantity; i++) {
+        await connection.query(
+          'INSERT INTO orderlines (orderID, productId, productPrice) VALUES (?, ?, ?)', 
+          [orderId, productId, productPrice]
+        );
+      }
+    }
+
+    await connection.commit();
+    res.status(201).json({ message: 'Pedido añadido con éxito.', orderId });
   } catch (error) {
+    if (connection) await connection.rollback();
     console.error('Error adding order:', error);
     res.status(500).send('Error adding order.');
   } finally {
-    connection.end();
+    if (connection) connection.end();
     console.log("Connection closed.");
   }
 });
@@ -414,20 +460,27 @@ app.delete('/orders/:id', async (req, res) => {
   try {
     // Ejecutar consulta de eliminación con 'await'
     connection = await connectDB();
-    const [result] = await connection.query('DELETE FROM orders WHERE id = ?', [orderId]);
+    await connection.beginTransaction();
 
-    console.log('Resultado de la eliminación:', result); // Imprimir el resultado de la consulta
+    const [orderLinesResult] = await connection.query('DELETE FROM orderlines WHERE orderID = ?', [orderId]);
+    console.log('Resultado de la eliminación de líneas de pedido:', orderLinesResult);
 
-    if (result.affectedRows > 0) {
+    const [orderResult] = await connection.query('DELETE FROM orders WHERE id = ?', [orderId]);
+    console.log('Resultado de la eliminación del pedido:', orderResult);
+
+    if (orderResult.affectedRows > 0) {
+      await connection.commit();
       res.status(200).send(`Pedido con ID ${orderId} eliminado con éxito.`);
     } else {
+      await connection.rollback();
       res.status(404).send('Pedido no encontrado.');
     }
   } catch (error) {
+    if (connection) await connection.rollback();
     console.error('Error al eliminar el pedido:', error);
     res.status(500).send('Error al eliminar el pedido.');
   } finally {
-    connection.end();
+    if (connection) connection.end();
     console.log("Connection closed.");
   }
 });
@@ -438,10 +491,10 @@ app.put('/orders/:id', async (req, res) => {
   const { id } = req.params;
   const cleanedId = id.replace(/[^0-9]/g, ''); 
   const orderId = parseInt(cleanedId, 10); // Convertir a entero
-  const { userId, total, status } = req.body;
+  const { status } = req.body;
   let connection;
 
-  if (userId == undefined || total == undefined || !status) {
+  if (!status || status != 'Pendent' && status != 'Entregat' && status != 'Preparant') {
     return res.status(400).send('Datos incompletos.');
   }
 
@@ -449,8 +502,8 @@ app.put('/orders/:id', async (req, res) => {
     connection = await connectDB();
     // Ejecutar consulta de actualización con 'await'
     const [result] = await connection.query(
-      `UPDATE orders SET userId = ?, total = ?, status = ? WHERE id = ?`, 
-      [userId, total, status, orderId]
+      `UPDATE orders SET status = ? WHERE id = ?`, 
+      [ status, orderId ]
     );
 
     if (result.affectedRows > 0) {
@@ -461,74 +514,6 @@ app.put('/orders/:id', async (req, res) => {
   } catch (error) {
     console.error('Error al actualizar el pedido:', error);
     res.status(500).send('Error al actualizar el pedido.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// CRUD DE LINEA DE PEDIDO
-// VER TODAS LAS LINEAS DE PEDIDO
-// Hace un SELECT de la tabla lineas de pedido, muestra todas las lineas de pedido
-app.get('/orderLine', async (req, res) => {
-  let connection;
-  try {
-    connection = await connectDB();
-    const [rows] = await connection.query('SELECT * FROM orderlines');
-    console.log("orderlines: ", rows);
-    res.json(rows);
-  } catch (error) {
-    console.error('Error fetching orderlines:', error); 
-    res.status(500).send('Error fetching orderlines.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// VER UNA LINEA DE PEDIDO ESPECÍFICA
-// Requiere un parametro 'id' el cual usamos para hacer un SELECT de una linea de pedido en especifico, muestra la linea de pedido
-app.get('/orderLine/:id', async (req, res) => {
-  const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
-  const orderLineId = parseInt(cleanedId, 10); // Convertir a entero
-
-  let connection;
-
-  try {
-    connection = await connectDB();
-    const [rows] = await connection.query('SELECT * FROM orderlines WHERE id = ?', [orderLineId]);
-    console.log("orderlines: ", rows); 
-    res.json(rows);
-  } catch (error) {
-    console.error('Error fetching orderlines:', error); 
-    res.status(500).send('Error fetching orderlines.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// AÑADIR UNA LINEA DE PEDIDO A LA BASE DE DATOS
-// Requiere un parametro 'body', provenienet de un JSON, el cual usamos para hacer un INSERT de una linea de pedido en especifico, añade la linea de pedido
-app.post('/orderLine', async (req, res) => {
-  const { orderId, productId, productPrice} = req.body;
-  if (orderId == undefined || productId == undefined || productPrice == undefined) {
-    return res.status(400).send('Datos incompletos.');
-  }
-
-  let connection;
-
-  try {
-    connection = await connectDB();
-    const [result] = await connection.query(
-      'INSERT INTO orderlines (orderId, productId, productPrice) VALUES (?, ?, ?)', 
-      [orderId, productId, productPrice]
-    );
-    res.status(201).send('Linea de pedido añadida con éxito.');
-  } catch (error) {
-    console.error('Error adding orderlines:', error);
-    res.status(500).send('Error adding orderlines.');
   } finally {
     connection.end();
     console.log("Connection closed.");
@@ -579,8 +564,8 @@ app.get('/user/:id', async (req, res) => {
 // AÑADIR UN USUARIO A LA BASE DE DATOS
 // Requiere un parametro 'body', provenienet de un JSON, el cual usamos para hacer un INSERT de un usuario en especifico, añade el usuario
 app.post('/user', async (req, res) => {
-  const { firstName, lastName, email, password, typeUserId } = req.body;
-  if (!firstName || !lastName || !email || !password || !typeUserId) {
+  const { firstName, lastName, email, password } = req.body;
+  if (!firstName || !lastName || !email || !password ) {
     return res.status(400).send('Datos incompletos.');
   }
 
@@ -589,8 +574,8 @@ app.post('/user', async (req, res) => {
   try {
     connection = await connectDB();
     const [result] = await connection.query(
-      'INSERT INTO users (firstName, lastName, email, password, typeUserId) VALUES (?, ?, ?, ?, ?)', 
-      [firstName, lastName, email, password, typeUserId]
+      'INSERT INTO users (firstName, lastName, email, password) VALUES (?, ?, ?, ?)', 
+      [firstName, lastName, email, password]
     );
     res.status(201).send('Usuario añadido con éxito.');
   } catch (error) {
@@ -660,138 +645,6 @@ app.put('/user/:id', async (req, res) => {
   } catch (error) {
     console.error('Error al actualizar el usuario:', error);
     res.status(500).send('Error al actualizar el usuario.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// CRUD DE TIPOS DE USUARIOS
-// VER TODOS LOS TIPOS DE USUARIOS
-// Hace un SELECT de la tabla tipos de usuarios, muestra todos los tipos de usuarios
-app.get('/typeUser', async (req, res) => {
-  let connection;
-  try {
-    connection = await connectDB();
-    const [rows] = await connection.query('SELECT * FROM typesusers');
-    console.log("TypesUsers: ", rows);
-    res.json(rows);
-  } catch (error) {
-    console.error('Error fetching typesUsers:', error); 
-    res.status(500).send('Error fetching typesUsers.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// VER UN TIPO DE USUARIO ESPECÍFICO
-// Requiere un parametro 'id' el cual usamos para hacer un SELECT de un tipo de usuario en especifico, muestra el tipo de usuario
-app.get('/typeUser/:id', async (req, res) => {
-  const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
-  const typeUserId = parseInt(cleanedId, 10); // Convertir a entero
-
-  let connection;
-
-  try {
-    connection = await connectDB();
-    const [rows] = await connection.query('SELECT * FROM typesUsers WHERE id = ?', [typeUserId]);
-    console.log("TypesUsers: ", rows); 
-    res.json(rows);
-  } catch (error) {
-    console.error('Error fetching typesUsers:', error); 
-    res.status(500).send('Error fetching typesUsers.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// AÑADIR UN TIPO DE USUARIO A LA BASE DE DATOS
-// Requiere un parametro 'body', provenienet de un JSON, el cual usamos para hacer un INSERT de un tipo de usuario en especifico, añade el tipo de usuario
-app.post('/typeUser', async (req, res) => {
-  const { name } = req.body;
-  if (!name) {
-    return res.status(400).send('Datos incompletos.');
-  }
-
-  let connection;
-
-  try {
-    connection = await connectDB();
-    const [result] = await connection.query(
-      'INSERT INTO typesusers (name) VALUES (?)', 
-      [name]
-    );
-    res.status(201).send('Tipo de usuario añadido con éxito.');
-  } catch (error) {
-    console.error('Error adding typesUsers:', error);
-    res.status(500).send('Error adding typesUsers.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// ELIMINAR UN TIPO DE USUARIO POR ID
-// Requiere un parametro 'id' el cual usamos para hacer un DELETE de un tipo de usuario en especifico, borra el tipo de usuario
-app.delete('/typeUser/:id', async (req, res) => {
-  const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
-  const typeUserId = parseInt(cleanedId, 10); // Convertir a entero
-  let connection;
-
-  try {
-    // Ejecutar consulta de eliminación con 'await'
-    connection = await connectDB();
-    const [result] = await connection.query('DELETE FROM typesusers WHERE id = ?', [typeUserId]);
-
-    console.log('Resultado de la eliminación:', result); // Imprimir el resultado de la consulta
-
-    if (result.affectedRows > 0) {
-      res.status(200).send(`Tipo de usuario con ID ${typeUserId} eliminado con éxito.`);
-    } else {
-      res.status(404).send('Tipo de usuario no encontrado.');
-    }
-  } catch (error) {
-    console.error('Error al eliminar el tipo de usuario:', error);
-    res.status(500).send('Error al eliminar el tipo de usuario.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// EDITAR UN TIPO DE USUARIO POR ID
-// Requiere un parametro 'id' el cual usamos para hacer un UPDATE de un tipo de usuario en especifico, edita el tipo de usuario
-app.put('/typeUser/:id', async (req, res) => {
-  const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
-  const typeUserId = parseInt(cleanedId, 10); // Convertir a entero
-  const { name } = req.body;
-  let connection;
-
-  if (!name) {
-    return res.status(400).send('Datos incompletos.');
-  }
-
-  try {
-    connection = await connectDB();
-    // Ejecutar consulta de actualización con 'await'
-    const [result] = await connection.query(
-      `UPDATE typesusers SET name = ? WHERE id = ?`, 
-      [name, typeUserId]
-    );
-
-    if (result.affectedRows > 0) {
-      res.status(200).send(`Tipo de usuario con ID ${typeUserId} actualizado con éxito.`);
-    } else {
-      res.status(404).send('Tipo de usuario no encontrado.');
-    }
-  } catch (error) {
-    console.error('Error al actualizar el tipo de usuario:', error);
-    res.status(500).send('Error al actualizar el tipo de usuario.');
   } finally {
     connection.end();
     console.log("Connection closed.");

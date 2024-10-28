@@ -1,9 +1,32 @@
-[
-    {
+{
+    "order": {
         "id": 2,
         "total": "89.99",
         "userId": 2,
         "date": "2024-10-28T09:30:21.000Z",
         "status": "Preparant"
-    }
-]
+    },
+    "orderLines": [
+        {
+            "id": 3,
+            "orderID": 2,
+            "productId": 5,
+            "productPrice": "89.99",
+            "date": "2024-10-28T09:30:21.000Z"
+        }
+    ],
+    "products": [
+        {
+            "id": 5,
+            "categoryId": 2,
+            "name": "Botes de Cuir",
+            "description": "Botes elegants fabricades en cuir de gran qualitat, amb un disseny clàssic que combina amb roba formal o casual. Duradores i còmodes per a tot el dia.",
+            "size": "40",
+            "price": "89.99",
+            "imagePath": "assets/botes_cuir.jpg",
+            "color": "Marró",
+            "stock": 20,
+            "activated": 1
+        }
+    ]
+}
