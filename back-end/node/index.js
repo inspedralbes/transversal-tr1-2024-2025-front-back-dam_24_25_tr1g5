@@ -11,11 +11,11 @@ const port = process.env.PORT;
 app.use(cors());
 app.use(express.json());
 
-// CREAR UNA BASE DE DATOS
-// Ejecuta la función createDB que se encuentra en el archivo configDB.js
-(async () => {
-  await createDB();
-})();
+// // CREAR UNA BASE DE DATOS
+// // Ejecuta la función createDB que se encuentra en el archivo configDB.js
+// (async () => {
+//   await createDB();
+// })();
 
 // CONEXIÓN A LA BASE DE DATOS
 // Hace una conexión a la base de datos usando los datos del archivo .env
@@ -338,7 +338,7 @@ app.put('/category/:id', async (req, res) => {
 // CRUD DE PEDIDOS
 // VER TODOS LOS PEDIDOS
 // Hace un SELECT de la tabla pedidos, muestra todos los pedidos
-app.get('/order', async (req, res) => {
+app.get('/orders', async (req, res) => {
   let connection;
   try {
     connection = await connectDB();
@@ -356,7 +356,7 @@ app.get('/order', async (req, res) => {
 
 // VER UN PEDIDO ESPECÍFICO
 // Requiere un parametro 'id' el cual usamos para hacer un SELECT de un pedido en especifico, muestra el pedido
-app.get('/order/:id', async (req, res) => {
+app.get('/orders/:id', async (req, res) => {
   const { id } = req.params;
   const cleanedId = id.replace(/[^0-9]/g, ''); 
   const orderId = parseInt(cleanedId, 10); // Convertir a entero
@@ -379,7 +379,7 @@ app.get('/order/:id', async (req, res) => {
 
 // AÑADIR UN PEDIDO A LA BASE DE DATOS
 // Requiere un parametro 'body', provenienet de un JSON, el cual usamos para hacer un INSERT de un pedido en especifico, añade el pedido
-app.post('/order', async (req, res) => {
+app.post('/orders', async (req, res) => {
   const { userId, total } = req.body;
   if (userId == undefined || total == undefined) {
     return res.status(400).send('Datos incompletos.');
@@ -405,7 +405,7 @@ app.post('/order', async (req, res) => {
 
 // ELIMINAR UN PEDIDO POR ID
 // Requiere un parametro 'id' el cual usamos para hacer un DELETE de un pedido en especifico, borra el pedido
-app.delete('/order/:id', async (req, res) => {
+app.delete('/orders/:id', async (req, res) => {
   const { id } = req.params;
   const cleanedId = id.replace(/[^0-9]/g, ''); 
   const orderId = parseInt(cleanedId, 10); // Convertir a entero
@@ -434,7 +434,7 @@ app.delete('/order/:id', async (req, res) => {
 
 // EDITAR UN PEDIDO POR ID
 // Requiere un parametro 'id' el cual usamos para hacer un UPDATE de un pedido en especifico, edita el pedido
-app.put('/order/:id', async (req, res) => {
+app.put('/orders/:id', async (req, res) => {
   const { id } = req.params;
   const cleanedId = id.replace(/[^0-9]/g, ''); 
   const orderId = parseInt(cleanedId, 10); // Convertir a entero
@@ -529,70 +529,6 @@ app.post('/orderLine', async (req, res) => {
   } catch (error) {
     console.error('Error adding orderlines:', error);
     res.status(500).send('Error adding orderlines.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// ELIMINAR UNA LINEA DE PEDIDO POR ID
-// Requiere un parametro 'id' el cual usamos para hacer un DELETE de una linea de pedido en especifico, borra la linea de pedido
-app.delete('/orderLine/:id', async (req, res) => {
-  const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
-  const orderLineId = parseInt(cleanedId, 10); // Convertir a entero
-  let connection;
-
-  try {
-    // Ejecutar consulta de eliminación con 'await'
-    connection = await connectDB();
-    const [result] = await connection.query('DELETE FROM orderlines WHERE id = ?', [orderLineId]);
-
-    console.log('Resultado de la eliminación:', result); // Imprimir el resultado de la consulta
-
-    if (result.affectedRows > 0) {
-      res.status(200).send(`Linea de pedido con ID ${orderLineId} eliminada con éxito.`);
-    } else {
-      res.status(404).send('Linea de pedido no encontrada.');
-    }
-  } catch (error) {
-    console.error('Error al eliminar la linea de pedido:', error);
-    res.status(500).send('Error al eliminar la linea de pedido.');
-  } finally {
-    connection.end();
-    console.log("Connection closed.");
-  }
-});
-
-// EDITAR UNA LINEA DE PEDIDO POR ID
-// Requiere un parametro 'id' el cual usamos para hacer un UPDATE de una linea de pedido en especifico, edita la linea de pedido
-app.put('/orderLine/:id', async (req, res) => {
-  const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
-  const orderLineId = parseInt(cleanedId, 10); // Convertir a entero
-  const { orderId, productId, productPrice } = req.body;
-  let connection;
-
-  if (orderId == undefined || productId == undefined || productPrice == undefined) {
-    return res.status(400).send('Datos incompletos.');
-  }
-
-  try {
-    connection = await connectDB();
-    // Ejecutar consulta de actualización con 'await'
-    const [result] = await connection.query(
-      `UPDATE orderlines SET orderId = ?, productId = ?, productPrice = ? WHERE id = ?`, 
-      [orderId, productId, productPrice, orderLineId]
-    );
-
-    if (result.affectedRows > 0) {
-      res.status(200).send(`Linea de pedido con ID ${orderLineId} actualizada con éxito.`);
-    } else {
-      res.status(404).send('Linea de pedido no encontrada.');
-    }
-  } catch (error) {
-    console.error('Error al actualizar la linea de pedido:', error);
-    res.status(500).send('Error al actualizar la linea de pedido.');
   } finally {
     connection.end();
     console.log("Connection closed.");

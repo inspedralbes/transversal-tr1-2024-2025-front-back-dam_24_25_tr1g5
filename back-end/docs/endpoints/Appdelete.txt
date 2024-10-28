@@ -1,0 +1,3 @@
+Para hacer cualquier delete es la ruta products o lo que sea más el id por parametro;
+ - product/:2
+ - http://localhost:3000/category/:4
