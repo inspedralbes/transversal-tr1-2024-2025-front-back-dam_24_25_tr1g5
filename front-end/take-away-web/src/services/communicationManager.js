@@ -106,3 +106,17 @@ export const deleteProduct = async (id) => {
     throw error;
   }
 };
+
+// Recibir todos los comandos
+export const getAllCommands = async () => {
+  try {
+    const response = await fetch(`${API_URL}orders`);
+    if (!response.ok) {
+      throw new Error('Error fetching commands');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching commands:', error);
+    throw error;
+  }
+};

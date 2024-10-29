@@ -26,7 +26,7 @@
   </v-container>
 </template>
 
-<script>
+<script >
 import { getAllProducts } from '@/services/communicationManager.js'; // Asegúrate de que esta ruta es correcta
 import { defineComponent, ref, onMounted } from 'vue'; // Importa funciones de Vue
 
