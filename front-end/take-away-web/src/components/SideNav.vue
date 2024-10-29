@@ -43,7 +43,7 @@ export default defineComponent({
     const items = ref([
       { icon: 'mdi-home', path: '/' },
       { icon: 'mdi-shoe-sneaker', path: '/productsPage' },
-      { icon: 'mdi-cube', path: '/cube' },
+      { icon: 'mdi-cube', path: '/ordersPage' },
       { icon: 'mdi-cog', path: '/settings' },
       { icon: 'mdi-format-list-bulleted', path: '/list' },
       
