@@ -23,10 +23,6 @@ export const getAllProducts = async () => {
   }
 };
 
-
-
-
-
 // Obtener productos activados (para usuario)
 export const getActivatedProducts = async () => {
   try {

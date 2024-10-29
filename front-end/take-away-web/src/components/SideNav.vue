@@ -41,8 +41,8 @@ export default defineComponent({
     const router = useRouter();
     
     const items = ref([
-      { icon: 'mdi-home', path: '/home' },
-      { icon: 'mdi-shoe-sneaker', path: '/products' },
+      { icon: 'mdi-home', path: '/' },
+      { icon: 'mdi-shoe-sneaker', path: '/productsPage' },
       { icon: 'mdi-cube', path: '/cube' },
       { icon: 'mdi-cog', path: '/settings' },
       { icon: 'mdi-format-list-bulleted', path: '/list' },
