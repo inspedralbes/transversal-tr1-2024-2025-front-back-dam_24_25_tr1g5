@@ -51,6 +51,35 @@ const upload = multer({ storage: storage });
 
 app.use('/assets', express.static('public'));
 
+// Login
+// Hace un SELECT de la tabla usuarios, verifica si existe un usuario con el email y password dados
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).send('Datos incompletos.');
+  }
+
+  let connection;
+
+  try {
+    connection = await connectDB();
+    const [rows] = await connection.query('SELECT * FROM users WHERE email = ? AND password = ?', [email, password]);
+    console.log("User: ", rows);
+
+    if (rows.length == 0) {
+      return res.status(404).send('Usuario no encontrado.');
+    }
+
+    res.status(201).json(rows[0]);
+  } catch (error) {
+    console.error('Error fetching user:', error); 
+    res.status(500).send('Error fetching user.');
+  } finally {
+    connection.end();
+    console.log("Connection closed.");
+  }
+});
+
 // CRUD DE PRODUCTOS
 // VER TODOS LOS PRODUCTOS PARA EMPRESA
 // Hace un SELECT de la tabla productos, muestra todos los productos
