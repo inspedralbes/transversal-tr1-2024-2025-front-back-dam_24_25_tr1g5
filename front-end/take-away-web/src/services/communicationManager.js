@@ -120,3 +120,17 @@ export const getAllCommands = async () => {
     throw error;
   }
 };
+
+// Recibir un comando por ID
+export const getCommandById = async (id) => {
+  try {
+    const response = await fetch(`${API_URL}orders/${id}`);
+    if (!response.ok) {
+      throw new Error(`Error fetching command with ID ${id}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching command with ID ${id}:`, error);
+    throw error;
+  }
+};

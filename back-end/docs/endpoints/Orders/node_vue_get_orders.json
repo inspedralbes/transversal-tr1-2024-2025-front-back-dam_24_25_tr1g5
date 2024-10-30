@@ -3,21 +3,24 @@
         "id": 1,
         "total": "75.98",
         "userId": 1,
-        "date": "2024-10-28T09:30:21.000Z",
-        "status": "Entregat"
+        "date": "2024-10-30T07:38:39.000Z",
+        "status": "Entregat",
+        "productCount": 2
     },
     {
         "id": 2,
         "total": "89.99",
         "userId": 2,
-        "date": "2024-10-28T09:30:21.000Z",
-        "status": "Preparant"
+        "date": "2024-10-30T07:38:39.000Z",
+        "status": "Preparant",
+        "productCount": 1
     },
     {
         "id": 3,
         "total": "70.98",
         "userId": 3,
-        "date": "2024-10-28T09:30:21.000Z",
-        "status": "Pendent"
+        "date": "2024-10-30T07:38:39.000Z",
+        "status": "Pendent",
+        "productCount": 2
     }
 ]
