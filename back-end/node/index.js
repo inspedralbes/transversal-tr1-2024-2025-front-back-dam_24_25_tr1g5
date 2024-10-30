@@ -371,14 +371,23 @@ app.get('/orders', async (req, res) => {
   let connection;
   try {
     connection = await connectDB();
-    const [rows] = await connection.query('SELECT * FROM orders');
-    console.log("Orders: ", rows);
-    res.json(rows);
+    const [orders] = await connection.query('SELECT * FROM orders');
+
+    const ordersWithCounts = await Promise.all(orders.map(async (order) => {
+      const [orderLineCount] = await connection.query('SELECT COUNT(*) as count FROM orderlines WHERE orderID = ?', [order.id]);
+      return {
+        ...order,
+        productCount: orderLineCount[0].count
+      };
+    }));
+
+    console.log("Orders with product counts: ", ordersWithCounts);
+    res.json(ordersWithCounts);
   } catch (error) {
     console.error('Error fetching orders:', error); 
     res.status(500).send('Error fetching orders.');
   } finally {
-    connection.end();
+    if (connection) connection.end();
     console.log("Connection closed.");
   }
 });

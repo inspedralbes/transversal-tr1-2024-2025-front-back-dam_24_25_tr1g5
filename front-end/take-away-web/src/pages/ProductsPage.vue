@@ -1,7 +1,7 @@
 <template>
   <!-- Contenedor principal que agrupa todos los elementos -->
   <v-container>
-    <h1>Productos</h1> <!-- Título de la sección -->
+    <h1>Productes</h1> <!-- Título de la sección -->
     <v-row>
       <!-- Itera sobre cada producto en la lista de productos -->
       <v-col v-for="product in products" :key="product.id" cols="12" md="4">
@@ -12,13 +12,13 @@
           <v-card-subtitle>{{ product.categoryId }} - {{ product.color }}</v-card-subtitle> <!-- Categoría y color del producto -->
           <v-card-text>
             <p>{{ product.description }}</p> <!-- Descripción del producto -->
-            <p><strong>Tamaño:</strong> {{ product.size }}</p> <!-- Tamaño del producto -->
-            <p><strong>Precio:</strong> ${{ Number(product.price).toFixed(2) }}</p> <!-- Precio del producto formateado a dos decimales -->
+            <p><strong>Talla:</strong> {{ product.size }}</p> <!-- Tamaño del producto -->
+            <p><strong>Preu:</strong> ${{ Number(product.price).toFixed(2) }}</p> <!-- Precio del producto formateado a dos decimales -->
             <p><strong>Stock:</strong> {{ product.stock }}</p> <!-- Cantidad en stock -->
           </v-card-text>
           <v-card-actions>
-            <v-btn color="primary">Edit</v-btn> <!-- Botón para editar el producto -->
-            <v-btn color="red">Delete</v-btn> <!-- Botón para eliminar el producto -->
+            <v-btn color="primary">Editar</v-btn> <!-- Botón para editar el producto -->
+            <v-btn color="red">Eliminar</v-btn> <!-- Botón para eliminar el producto -->
           </v-card-actions>
         </v-card>
       </v-col>

@@ -2,68 +2,65 @@
   <div class="container">
     <div class="header">
       <img src="@/assets/logo.png" alt="Logo" class="logo" />
-      <h1 class="title">Gestió de NAME?</h1>
+      <h1 class="text-h1 font-weight-black">Gestió de NAME?</h1>
     </div>
     <div class="button-group">
-      <button class="button">Gestió Productes</button>
-      <button class="button">Gestió Comandes</button>
+      <v-btn @click="goToProduct" size="x-large" color="indigo-darken-1"> 
+        <v-icon style="margin-right: 3px;">mdi-shoe-sneaker</v-icon>
+        Gestió Productes
+      </v-btn>
+      <v-btn @click="goToOrder" size="x-large" color="teal-darken-1">
+        <v-icon style="margin-right: 3px;">mdi-cube</v-icon>
+        Gestió Comandes
+      </v-btn>
     </div>
   </div>
 </template>
 
 <script setup>
-// Importamos la función useRouter
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+const goToProduct = () => router.push('/productsPage');
+const goToOrder = () => router.push('/ordersPage');
 </script>
 
 <style scoped>
-/* Centramos la página */
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  text-align: center;
-  background-color: #000000; /* Fondo suave */
+  height: 100vh; 
 }
 
 .header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 20px;
+  justify-content: center;
 }
 
 .logo {
-  width: 60px;
-  height: 60px;
-  margin-right: 15px;
+  width: 100px;
+  height: 100px;
 }
 
-.title {
-  font-size: 28px;
-  font-weight: bold;
-  color: #ffffff;
+.text-h1 {
+  margin-top: 10px;
+  text-shadow: 8px 4px 2px #555555;;
 }
 
-/* Estilo de los botones */
 .button-group {
   display: flex;
-  gap: 15px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 }
 
-.button {
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  color: #fff;
-  background-color: #4d7c4e;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.button:hover {
-  background-color: #45a049;
+.v-btn {
+  margin: 10px;
+  margin-top: 20px;
 }
 </style>

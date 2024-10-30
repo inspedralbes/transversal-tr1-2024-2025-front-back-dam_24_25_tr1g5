@@ -1,25 +1,26 @@
 <template>
     <div class="orders-page">
-        <h1 class="section-title">Orders</h1>
         <v-container>
+            <h1>Comandes</h1>
             <v-row>
                 <!-- Recorre cada orden y la muestra como una tarjeta -->
                 <v-col v-for="order in orders" :key="order.id" cols="12" md="4">
                     <v-card class="order-card">
                         <v-card-title class="order-title">
-                            Order #{{ order.id }}
+                            Comanda #{{ order.id }}
                         </v-card-title>
                         <v-card-subtitle class="order-subtitle">
-                            <strong>Status:</strong> {{ order.status }}
+                            <strong>Estat:</strong> {{ order.status }}
                         </v-card-subtitle>
                         <v-card-text class="order-details">
-                            <p><strong>Date:</strong> {{ new Date(order.date).toLocaleString() }}</p>
+                            <p><strong>Data:</strong> {{ new Date(order.date).toLocaleString() }}</p>
                             <p><strong>Total:</strong> ${{ Number(order.total).toFixed(2) }}</p>
-                            <p><strong>User ID:</strong> {{ order.userId }}</p>
+                            <p><strong>ID Usuari:</strong> {{ order.userId }}</p>
+                            <p><strong>Productes:</strong> {{ order.productCount }}</p>
                         </v-card-text>
                         <v-card-actions class="action-buttons">
-                            <v-btn color="primary" class="edit-button">Edit</v-btn>
-                            <v-btn color="info" class="view-button">Consult</v-btn>
+                            <v-btn color="primary">Editar</v-btn>
+                            <v-btn color="info">Consultar</v-btn>
                         </v-card-actions>
                     </v-card>
                 </v-col>
@@ -50,22 +51,28 @@ getAllCommands().then((data) => {
     font-family: Arial, sans-serif;
 }
 
-.section-title {
-    text-align: center;
-    font-size: 2em;
+.v-container {
+  margin-top: 20px; /* Espacio superior */
+}
+
+/* Título alineado a la izquierda */
+.page-title {
+    align-self: flex-start;
+    margin-left: 40px;
+    margin-top: 30px;
+    /* Ajusta el margen según tus preferencias */
     color: #fff;
-    margin: 20px 0;
+    font-size: 1.5em;
 }
 
 /* Contenedor y diseño de la tarjeta */
 .order-card {
     transition: transform 0.2s, box-shadow 0.2s;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    /* Sombra para efecto de profundidad */
     border-radius: 8px;
     overflow: hidden;
-    background-color: #1f3c72;
     color: white;
+    padding: 5%;
 }
 
 .order-card:hover {
@@ -96,24 +103,6 @@ getAllCommands().then((data) => {
     display: flex;
     justify-content: space-around;
     padding: 10px;
-}
-
-.edit-button {
-    background-color: #4CAF50 !important;
-    color: white;
-}
-
-.view-button {
-    background-color: #2196F3 !important;
-    color: white;
-}
-
-.edit-button:hover {
-    background-color: #45a049 !important;
-}
-
-.view-button:hover {
-    background-color: #1976d2 !important;
 }
 
 /* Mensaje si no hay órdenes */
