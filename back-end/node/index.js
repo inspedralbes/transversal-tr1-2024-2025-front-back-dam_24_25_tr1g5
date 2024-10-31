@@ -444,7 +444,7 @@ app.post('/orders', async (req, res) => {
   const { total, products } = req.body;
   const { totalPrice, userId, pay } = total;
 
-  if (userId == undefined || totalPrice == undefined || !Array.isArray(products) || !pay) {
+  if (userId == undefined || totalPrice == undefined || !Array.isArray(products)) {
     return res.status(400).send('Datos incompletos.');
   }
 

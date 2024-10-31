@@ -1,7 +1,8 @@
 {
     "total": {
         "totalPrice": "229.97",
-        "userId": 2
+        "userId": 2,
+        "pay": 0
     },
     "products": [
         {
