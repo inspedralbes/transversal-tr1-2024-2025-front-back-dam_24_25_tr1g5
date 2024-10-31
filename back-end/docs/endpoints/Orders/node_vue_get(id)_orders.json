@@ -32,6 +32,7 @@
     ],
     "user": {
         "firstName": "Jane",
+        "lastName": "Smith",
         "email": "janesmith@gmail.com"
     }
 }

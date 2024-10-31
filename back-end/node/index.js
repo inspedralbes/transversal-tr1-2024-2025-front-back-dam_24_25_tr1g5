@@ -418,7 +418,7 @@ app.get('/orders/:id', async (req, res) => {
     }
 
     const userId = orderRows[0].userId; // Asumiendo que la tabla orders tiene una columna userId
-    const [userRows] = await connection.query('SELECT firstName, email FROM users WHERE id = ?', [userId]);
+    const [userRows] = await connection.query('SELECT firstName, lastName, email FROM users WHERE id = ?', [userId]);
 
     const orderDetails = {
       order: orderRows[0],

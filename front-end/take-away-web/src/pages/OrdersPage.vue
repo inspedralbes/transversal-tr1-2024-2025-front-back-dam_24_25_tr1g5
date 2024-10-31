@@ -15,6 +15,7 @@
                         <v-card-text class="order-details">
                             <p><strong>Data:</strong> {{ new Date(order.date).toLocaleString() }}</p>
                             <p><strong>Total:</strong>{{ Number(order.total).toFixed(2) }}€</p>
+                            <p><strong>Pagament:</strong> {{ order.pay === 0 ? 'Pendent' : 'Fet' }}</p>
                             <p><strong>ID Usuari:</strong> {{ order.userId }}</p>
                             <p><strong>Productes:</strong> {{ order.productCount }}</p>
                         </v-card-text>
@@ -36,8 +37,11 @@
                     <p><strong>Comanda #{{ selectedOrder.order.id }}</strong></p>
                     <p><strong>Data:</strong> {{ new Date(selectedOrder.order.date).toLocaleString() }}</p>
                     <p><strong>Estat:</strong> {{ selectedOrder.order.status }}</p>
-                    <p><strong>Total:</strong>{{ Number(selectedOrder.order.total).toFixed(2) }}€</p>
+                    <p><strong>Total:</strong> {{ Number(selectedOrder.order.total).toFixed(2) }}€</p>
+                    <p><strong>Pagament:</strong> {{ selectedOrder.order.pay === 0 ? 'Pendent' : 'Fet' }}</p>
                     <p><strong>ID Usuari:</strong> {{ selectedOrder.order.userId }}</p>
+                    <p><strong>Nom:</strong> {{ selectedOrder.user.firstName }} {{ selectedOrder.user.lastName }}</p>
+                    <p><strong>Email:</strong> {{ selectedOrder.user.email }}</p>
                 </v-card-subtitle>
 
                 <v-card-text v-if="selectedOrder">
@@ -57,7 +61,7 @@
                 </v-card-text>
 
                 <v-card-actions>
-                    <v-btn class="ms-auto" text="Ok" @click="dialog = false">Tancar</v-btn>
+                    <v-btn class="ms-auto" text="Ok" @click="dialog = false" color="teal-accent-3">Tancar</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -163,10 +167,19 @@ const consultarComanda = (id) => {
     margin-top: 20px;
 }
 
+.headline {
+    margin-top: 10px;
+}
+
 .v-list-item {
     border-top: #ddd solid 1px;
     display: flex;
     align-items: center;
     margin: 10px;
+    padding-top: 20px;
+}
+
+.v-img {
+    margin-bottom: 20px;
 }
 </style>
