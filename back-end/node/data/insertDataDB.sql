@@ -24,10 +24,10 @@ INSERT INTO products (categoryId, name, description, size, price, imagePath, col
     (3, 'Gorra', 'Gorra ajustable de cotó amb disseny casual i esportiu. Ideal per protegir-se del sol o per complementar un look desenfadat.', NULL, 12.99, 'assets/gorra.jpg', 'Blau', 120, 1),
     (3, 'Bufanda de Llana', 'Bufanda càlida de llana natural, perfecta per als dies freds. Suau al tacte i disponible en diferents colors elegants per combinar amb qualsevol abric.', NULL, 24.99, 'assets/bufanda.jpg', 'Gris', 50, 1);
 
-INSERT INTO orders (total, userId, status) VALUES 
-    (75.98, 1, 'Entregat'),
-    (89.99, 2, 'Preparant'),
-    (70.98, 3, 'Pendent');
+INSERT INTO orders (total, userId, status, pay) VALUES 
+    (75.98, 1, 'Entregat', 1),
+    (89.99, 2, 'Preparant', 0),
+    (70.98, 3, 'Pendent', 1);
 
 INSERT INTO orderlines (orderID, productId, productPrice) VALUES 
     (1, 1, 15.99),

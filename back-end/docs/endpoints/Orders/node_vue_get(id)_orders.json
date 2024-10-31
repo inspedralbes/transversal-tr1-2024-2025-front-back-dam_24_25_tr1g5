@@ -3,8 +3,9 @@
         "id": 2,
         "total": "89.99",
         "userId": 2,
-        "date": "2024-10-28T09:30:21.000Z",
-        "status": "Preparant"
+        "date": "2024-10-31T11:22:00.000Z",
+        "status": "Preparant",
+        "pay": 0
     },
     "orderLines": [
         {
@@ -12,7 +13,7 @@
             "orderID": 2,
             "productId": 5,
             "productPrice": "89.99",
-            "date": "2024-10-28T09:30:21.000Z"
+            "date": "2024-10-31T11:22:00.000Z"
         }
     ],
     "products": [
@@ -28,5 +29,9 @@
             "stock": 20,
             "activated": 1
         }
-    ]
+    ],
+    "user": {
+        "firstName": "Jane",
+        "email": "janesmith@gmail.com"
+    }
 }

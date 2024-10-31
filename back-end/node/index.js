@@ -404,7 +404,6 @@ app.get('/orders/:id', async (req, res) => {
   try {
     connection = await connectDB();
     const [orderRows] = await connection.query('SELECT * FROM orders WHERE id = ?', [orderId]);
-    
 
     if (orderRows.length == 0) {
       return res.status(404).send('Order not found.');
@@ -418,10 +417,14 @@ app.get('/orders/:id', async (req, res) => {
       products.push(product[0][0]);
     }
 
+    const userId = orderRows[0].userId; // Asumiendo que la tabla orders tiene una columna userId
+    const [userRows] = await connection.query('SELECT firstName, email FROM users WHERE id = ?', [userId]);
+
     const orderDetails = {
-      order : orderRows[0],
-      orderLines : orderLineRows,
-      products : products
+      order: orderRows[0],
+      orderLines: orderLineRows,
+      products: products,
+      user: userRows[0] // Añadir información del usuario
     };
 
     console.log("Order Details: ", orderDetails); 
@@ -439,9 +442,9 @@ app.get('/orders/:id', async (req, res) => {
 // Requiere un parametro 'body', provenienet de un JSON, el cual usamos para hacer un INSERT de un pedido en especifico, añade el pedido
 app.post('/orders', async (req, res) => {
   const { total, products } = req.body;
-  const { totalPrice, userId } = total;
+  const { totalPrice, userId, pay } = total;
 
-  if (userId == undefined || totalPrice == undefined || !Array.isArray(products)) {
+  if (userId == undefined || totalPrice == undefined || !Array.isArray(products) || !pay) {
     return res.status(400).send('Datos incompletos.');
   }
 
@@ -453,8 +456,8 @@ app.post('/orders', async (req, res) => {
 
     // Insertar el pedido en la tabla orders
     const [result] = await connection.query(
-      'INSERT INTO orders (userId, total) VALUES (?, ?)', 
-      [userId, totalPrice]
+      'INSERT INTO orders (userId, total, pay) VALUES (?, ?, ?)', 
+      [userId, totalPrice, pay]
     );
 
     const orderId = result.insertId;
