@@ -134,3 +134,23 @@ export const getCommandById = async (id) => {
     throw error;
   }
 };
+
+// Editar un comando
+export const updateCommand = async (id, command) => {
+  try {
+    const response = await fetch(`${API_URL}orders/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(command),
+    });
+    if (!response.ok || !response.status === 200) {
+      throw new Error(`Error updating command with ID ${id}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error updating command with ID ${id}:`, error);
+    throw error;
+  }
+};
