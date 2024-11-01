@@ -1,108 +1,111 @@
 <template>
-  <!-- Contenedor principal que agrupa todos los elementos -->
   <v-container>
-    <h1>Productes</h1> <!-- Título de la sección -->
+    <h1>Productes</h1>
     <v-row>
-      <!-- Itera sobre cada producto en la lista de productos -->
       <v-col v-for="product in products" :key="product.id" cols="12" md="4">
         <v-card>
-          <!-- Imagen del producto, con la ruta obtenida de la función getImagePath -->
           <v-img :src="getImagePath(product.imagePath)" height="200px"></v-img>
-          <v-card-title>{{ product.name }}</v-card-title> <!-- Nombre del producto -->
-          <v-card-subtitle>{{ product.categoryId }} - {{ product.color }}</v-card-subtitle> <!-- Categoría y color del producto -->
+          <v-card-title>{{ product.name }}</v-card-title>
+          <v-card-subtitle>{{ product.categoryId }} - {{ product.color }}</v-card-subtitle>
           <v-card-text>
-            <p>{{ product.description }}</p> <!-- Descripción del producto -->
-            <p><strong>Talla:</strong> {{ product.size }}</p> <!-- Tamaño del producto -->
-            <p><strong>Preu:</strong> ${{ Number(product.price).toFixed(2) }}</p> <!-- Precio del producto formateado a dos decimales -->
-            <p><strong>Stock:</strong> {{ product.stock }}</p> <!-- Cantidad en stock -->
+            <p>{{ product.description }}</p>
+            <p><strong>Talla:</strong> {{ product.size }}</p>
+            <p><strong>Preu:</strong> ${{ Number(product.price).toFixed(2) }}</p>
+            <p><strong>Stock:</strong> {{ product.stock }}</p>
           </v-card-text>
           <v-card-actions>
-            <v-btn color="primary">Editar</v-btn> <!-- Botón para editar el producto -->
-            <v-btn color="red">Eliminar</v-btn> <!-- Botón para eliminar el producto -->
+            <v-btn color="primary">Editar</v-btn>
+            <v-btn color="red">Eliminar</v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
   </v-container>
+
+  <p v-if="products.length == 0">No hi ha productes disponibles</p>
+
+  <!-- Diálogo de editar producto -->
+  <v-dialog >
+    <v-card>
+      <v-card-title class="headline">Editar Producte</v-card-title>
+      <v-card-text>
+        <v-text-field label="Nom" v-model="selectedProduct.name"></v-text-field>
+        <v-text-field label="Descripció" v-model="selectedProduct.description"></v-text-field>
+        <v-text-field label="Preu" v-model="selectedProduct.price"></v-text-field>
+        <v-text-field label="Talla" v-model="selectedProduct.size"></v-text-field>
+        <v-text-field label="Color" v-model="selectedProduct.color"></v-text-field>
+        <v-text-field label="Stock" v-model="selectedProduct.stock"></v-text-field>
+        <v-file-input
+          label="Imatge"
+          v-model="selectedProduct.imagePath"
+          accept="image/*"
+        ></v-file-input>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary">Guardar</v-btn>
+        <v-btn color="red">Cancelar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
 </template>
 
-<script >
-import { getAllProducts } from '@/services/communicationManager.js'; // Asegúrate de que esta ruta es correcta
-import { defineComponent, ref, onMounted } from 'vue'; // Importa funciones de Vue
+<script setup>
+import { getAllProducts } from '@/services/communicationManager.js';
+import { ref, onMounted } from 'vue';
 
-export default defineComponent({
-  name: 'Products',
-  setup() {
-    const products = ref([]); // Define una referencia reactiva para los productos
+const products = ref([]);
 
-    // Función para cargar los productos desde el servicio
-    const loadProducts = async () => {
-      try {
-        products.value = await getAllProducts(); // Asigna los datos a la referencia
-        console.log('Productos cargados:', products.value); // Muestra los productos en la consola
-      } catch (error) {
-        console.error('Error al cargar productos:', error); // Muestra cualquier error
-      }
-    };
+const loadProducts = async () => {
+  try {
+    products.value = await getAllProducts();
+    console.log('Productos cargados:', products.value);
+  } catch (error) {
+    console.error('Error al cargar productos:', error);
+  }
+};
 
-    // Función para obtener la ruta de la imagen según el nombre del archivo
-    const getImagePath = (imagePath) => {
-      // return imagePath ? `/assets/images/${imagePath}` : '/assets/images/default.jpg';
-      let apiUrl = import.meta.env.VITE_URL_BACK;
-      let imageUrl = apiUrl + imagePath;
-      console.log(imageUrl)
-      return imageUrl
-    };
+const getImagePath = (imagePath) => {
+  let apiUrl = import.meta.env.VITE_URL_BACK;
+  let imageUrl = apiUrl + imagePath;
+  console.log(imageUrl);
+  return imageUrl;
+};
 
-    // Carga los productos cuando el componente se monta
-    onMounted(loadProducts);
-
-    return {
-      products, // Expone la referencia de productos
-      getImagePath, // Expone la función para obtener la ruta de la imagen
-    };
-  },
-});
+onMounted(loadProducts);
 </script>
 
 <style scoped>
-/* Estilos para el contenedor principal */
 .v-container {
-  margin-top: 20px; /* Espacio superior */
+  margin-top: 20px;
 }
 
-/* Espaciado entre cada tarjeta */
 .v-row {
-  margin-bottom: 20px; /* Espacio inferior */
+  margin-bottom: 20px;
 }
 
-/* Estilo de la tarjeta */
 .v-card {
-  transition: transform 0.2s; /* Efecto de transición al escalar */
+  transition: transform 0.2s;
 }
 
 .v-card:hover {
-  transform: scale(1.05); /* Escala al pasar el mouse */
+  transform: scale(1.05);
 }
 
-/* Estilos para la imagen de la tarjeta */
 .v-img {
-  border-top-left-radius: 4px; /* Esquinas redondeadas en la parte superior izquierda */
-  border-top-right-radius: 4px; /* Esquinas redondeadas en la parte superior derecha */
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
 }
 
-/* Estilo del título de la tarjeta */
 .v-card-title {
-  font-weight: bold; /* Texto en negrita */
+  font-weight: bold;
 }
 
-/* Estilo para el subtítulo */
 .v-card-subtitle {
-  color: #666; /* Color gris para el subtítulo */
+  color: #666;
 }
 
-/* Espacio entre texto y botón */
 .v-card-text {
-  padding-bottom: 10px; /* Espacio inferior en el texto */
+  padding-bottom: 10px;
 }
 </style>

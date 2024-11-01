@@ -548,7 +548,10 @@ app.put('/orders/:id', async (req, res) => {
     );
 
     if (result.affectedRows > 0) {
-      res.status(200).send(`Pedido con ID ${orderId} actualizado con éxito.`);
+      let message = {
+        message: `Pedido con ID ${orderId} actualizado con éxito.`,
+      }
+      res.status(200).send(JSON.stringify(message));
     } else {
       res.status(404).send('Pedido no encontrado.');
     }

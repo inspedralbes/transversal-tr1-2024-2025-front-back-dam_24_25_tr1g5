@@ -27,7 +27,7 @@
                 </v-col>
             </v-row>
         </v-container>
-        <p v-if="orders.length === 0" class="no-orders">No orders available</p>
+        <p v-if="orders.length === 0" class="no-orders">No hi ha ordres disponibles</p>
         <!-- Diálogo de detalles de la comanda -->
         <v-dialog v-model="orderDetailsModal" width="600">
             <v-card>
@@ -60,7 +60,8 @@
                 </v-card-text>
 
                 <v-card-actions>
-                    <v-btn class="ms-auto" text="Ok" @click="orderDetailsModal = false" color="teal-accent-3">Tancar</v-btn>
+                    <v-btn class="ms-auto" text="Ok" @click="orderDetailsModal = false"
+                        color="teal-accent-3">Tancar</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -71,10 +72,13 @@
                 <v-card-title class="headline">Editar Comanda</v-card-title>
                 <v-card-text>
                     <p>Selecciona el nou estat de la comanda</p>
-                    <v-select v-model="selectedOrder.status" :items="['Entregat', 'Preparant', 'Pendent']" label="Estat" />
+                    <v-select v-model="selectedOrder.status" :items="['Entregat', 'Preparant', 'Pendent']"
+                        label="Estat" />
                 </v-card-text>
                 <v-card-actions>
-                    <v-btn class="ms-auto" text="Ok" @click="sendEditOrder(selectedOrder.order.id, selectedOrder.status)" color="teal-accent-3">Editar</v-btn>
+                    <v-btn class="ms-auto" text="Ok"
+                        @click="sendEditOrder(selectedOrder.order.id, selectedOrder.status)"
+                        color="teal-accent-3">Editar</v-btn>
                     <v-btn class="" text="Cancel" @click="editOrderModal = false" color="red">Cancel·lar</v-btn>
                 </v-card-actions>
             </v-card>
@@ -92,10 +96,14 @@ let orderDetailsModal = ref(false)
 let editOrderModal = ref(false)
 let url = import.meta.env.VITE_URL_BACK
 
-getAllCommands().then((data) => {
-    orders.value = data
-    console.log(data)
-})
+const loadOrders = () => {
+    getAllCommands().then((data) => {
+        orders.value = data
+        console.log(data)
+    })
+}
+
+loadOrders()
 
 const editOrder = (id) => {
     console.log('Editar comanda', id)
@@ -120,9 +128,7 @@ const sendEditOrder = (id, status) => {
     }
     updateCommand(id, editStatus).then(() => {
         editOrderModal.value = false
-        getAllCommands().then((data) => {
-            orders.value = data
-        })
+        loadOrders()
     })
 }
 </script>
