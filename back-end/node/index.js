@@ -184,7 +184,10 @@ app.delete('/product/:id', async (req, res) => {
     console.log('Resultado de la eliminación:', result); // Imprimir el resultado de la consulta
 
     if (result.affectedRows > 0) {
-      res.status(200).send(`Producto con ID ${productId} eliminado con éxito.`);
+      let message = {
+        message: `Producto con ID ${productId} eliminado con éxito.`
+      }
+      res.status(200).send(JSON.stringify(message));
     } else {
       res.status(404).send('Producto no encontrado.');
     }
@@ -199,40 +202,6 @@ app.delete('/product/:id', async (req, res) => {
 
 // EDITAR UN PRODUCTO POR ID
 // Requiere un parametro 'id' el cual usamos para hacer un UPDATE de un producto en especifico, edita el producto
-// app.put('/product/:id', upload.single('image'), async (req, res) => {
-//   const { id } = req.params;
-//   const cleanedId = id.replace(/[^0-9]/g, ''); 
-//   const productId = parseInt(cleanedId, 10); // Convertir a entero
-//   const { categoryId, name, description, size, price, color, stock, activated } = req.body;
-//   let connection;
-
-//   if ( categoryId == undefined || !name || !description || !size || price == undefined || !color || stock == undefined || activated == undefined ) {
-//     return res.status(400).send('Datos incompletos.');
-//   }
-
-//   try {
-//     const imagePath = req.file.path;
-//     connection = await connectDB();
-//     // Ejecutar consulta de actualización con 'await'
-//     const [result] = await connection.query(
-//       `UPDATE products SET categoryId = ?, name = ?, description = ?, size = ?, price = ?, imagePath = ?, color = ?, stock = ?, activated = ? WHERE id = ?`, 
-//       [categoryId, name, description, size, price, imagePath, color, stock, activated, productId]
-//     );
-
-//     if (result.affectedRows > 0) {
-//       res.status(200).send(`Producto con ID ${productId} actualizado con éxito.`);
-//     } else {
-//       res.status(404).send('Producto no encontrado.');
-//     }
-//   } catch (error) {
-//     console.error('Error al actualizar el producto:', error);
-//     res.status(500).send('Error al actualizar el producto.');
-//   } finally {
-//     connection.end();
-//     console.log("Connection closed.");
-//   }
-// });
-
 app.put('/product/:id', upload.single('image'), async (req, res) => {
   const { id } = req.params;
   const cleanedId = id.replace(/[^0-9]/g, ''); 

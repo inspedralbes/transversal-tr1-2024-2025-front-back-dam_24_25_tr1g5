@@ -105,7 +105,7 @@ export const deleteProduct = async (id) => {
     const response = await fetch(`${API_URL}product/${id}`, {
       method: 'DELETE',
     });
-    if (!response.ok) {
+    if (!response.ok || !response.status === 200) {
       throw new Error(`Error deleting product with ID ${id}`);
     }
     return await response.json();

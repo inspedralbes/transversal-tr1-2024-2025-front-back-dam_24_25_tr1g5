@@ -15,7 +15,7 @@
           </v-card-text>
           <v-card-actions>
             <v-btn color="primary" @click="editProductShowModal(product.id)">Editar</v-btn>
-            <v-btn color="red">Eliminar</v-btn>
+            <v-btn color="red" @click="deleteProductShowModal(product.id)">Eliminar</v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -57,16 +57,31 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <!-- Alert de eliminar producto -->
+  <v-dialog v-model="deleteProductModal" width="400">
+    <v-card>
+      <v-card-title class="headline">Eliminar Producte</v-card-title>
+      <v-card-text>
+        <p>Estàs segur que vols eliminar aquest producte?</p>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="warning" @click="deleteProductModal = false">Cancelar</v-btn>
+        <v-btn color="red" @click="deleteProduct(selectedProduct.id)">Eliminar</v-btn>
+      </v-card-actions>
+    </v-card>
+  ></v-dialog>
 </template>
 
 <script setup>
-import { getAllProducts, getProductById, updateProduct, getAllCategories } from '@/services/communicationManager.js';
+import { getAllProducts, getProductById, updateProduct, deleteProduct, getAllCategories } from '@/services/communicationManager.js';
 import { ref } from 'vue';
 
 const products = ref([]);
 const editProductModal = ref(false);
 const selectedProduct = ref({});
 const typeCategories = ref([]);
+const deleteProductModal = ref(false);
 
 const loadProducts = async () => {
   try {
@@ -120,6 +135,13 @@ const sendUpdateProduct = async (productId, product) => {
     editProductModal.value = false;
     loadProducts();
   });
+};
+
+const deleteProductShowModal = (productId) => {
+  console.log('Eliminando producto:', productId);
+  selectedProduct.value.id = productId;
+  console.log('Producto seleccionado:', selectedProduct.value.id);
+  deleteProductModal.value = true;
 };
 </script>
 
