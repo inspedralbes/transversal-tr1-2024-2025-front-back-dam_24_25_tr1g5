@@ -68,7 +68,7 @@
       </v-card-text>
       <v-card-actions>
         <v-btn color="warning" @click="deleteProductModal = false">Cancelar</v-btn>
-        <v-btn color="red" @click="deleteProduct(selectedProduct.id)">Eliminar</v-btn>
+        <v-btn color="red" @click="sendDeleteProduct(selectedProduct.id)">Eliminar</v-btn>
       </v-card-actions>
     </v-card>
   ></v-dialog>
@@ -189,6 +189,15 @@ const sendCreateProduct = async (product) => {
   addProduct(product, imageInput.files[0]).then((data) => {
     console.log('Producto creado:', data);
     createProductModal.value = false;
+    loadProducts();
+  });
+};
+
+const sendDeleteProduct = async (productId) => {
+  console.log('Eliminando producto:', productId);
+  deleteProduct(productId).then((data) => {
+    console.log('Producto eliminado:', data);
+    deleteProductModal.value = false;
     loadProducts();
   });
 };

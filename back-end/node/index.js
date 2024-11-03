@@ -1,4 +1,5 @@
 const mysql = require('mysql2/promise');
+const fs = require('fs');
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -177,33 +178,35 @@ app.post('/product', upload.single('image'), async (req, res) => {
 // Requiere un parametro 'id' el cual usamos para hacer un DELETE de un producto en especifico, borra el producto
 app.delete('/product/:id', async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
-  const productId = parseInt(cleanedId, 10); // Convertir a entero
+  const cleanedId = id.replace(/[^0-9]/g, '');
+  const productId = parseInt(cleanedId, 10);
   let connection;
 
   try {
-    // Ejecutar consulta de eliminación con 'await'
     connection = await connectDB();
+    const [rows] = await connection.query('SELECT imagePath FROM products WHERE id = ?', [productId]);
+    if (rows.length === 0) return res.status(404).send('Producto no encontrado.');
+
+    const imagePath = "public/" + rows[0].imagePath.split('/').slice(1).join('/');
     const [result] = await connection.query('DELETE FROM products WHERE id = ?', [productId]);
 
-    console.log('Resultado de la eliminación:', result); // Imprimir el resultado de la consulta
-
     if (result.affectedRows > 0) {
-      let message = {
-        message: `Producto con ID ${productId} eliminado con éxito.`
-      }
-      res.status(200).send(JSON.stringify(message));
+      fs.unlink(imagePath, (err) => {
+        if (err) return res.status(500).send('Error al eliminar la imagen del sistema de archivos.');
+        
+        const message = { message: `Producto con ID ${productId} eliminado con éxito, junto con la imagen asociada.` };
+        res.status(200).send(JSON.stringify(message));
+      });
     } else {
       res.status(404).send('Producto no encontrado.');
     }
   } catch (error) {
-    console.error('Error al eliminar el producto:', error);
     res.status(500).send('Error al eliminar el producto.');
   } finally {
     connection.end();
-    console.log("Connection closed.");
   }
 });
+
 
 // EDITAR UN PRODUCTO POR ID
 // Requiere un parametro 'id' el cual usamos para hacer un UPDATE de un producto en especifico, edita el producto
