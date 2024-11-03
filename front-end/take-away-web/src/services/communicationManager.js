@@ -52,16 +52,23 @@ export const getProductById = async (id) => {
 };
 
 // Añadir un producto
-export const addProduct = async (product) => {
+export const addProduct = async (product, image) => {
+  const formData = new FormData();
+  formData.append('name', product.name);
+  formData.append('description', product.description);
+  formData.append('price', product.price);
+  formData.append('categoryId', product.categoryId);
+  formData.append('image', image);
+  formData.append('activated', product.activated);
+  formData.append('stock', product.stock);
+  formData.append('size', product.size);
+  formData.append('color', product.color);
   try {
     const response = await fetch(`${API_URL}product`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(product),
+      body: formData,
     });
-    if (!response.ok) {
+    if (!response.ok || !response.status === 201) {
       throw new Error('Error adding product');
     }
     return await response.json();

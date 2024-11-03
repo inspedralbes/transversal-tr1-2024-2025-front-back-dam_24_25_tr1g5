@@ -151,13 +151,18 @@ app.post('/product', upload.single('image'), async (req, res) => {
   let connection;
 
   try {
-    const imagePath = req.file.path;
+    const imagePath = "assets/" + req.file.filename;
+    console.log('Image path:', imagePath);
     connection = await connectDB();
     const [result] = await connection.query(
       'INSERT INTO products (categoryId, name, description, size, price, imagePath, color, stock, activated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
       [categoryId, name, description, size, price, imagePath, color, stock, activated]
     );
-    res.status(201).send('Producto añadido con éxito.');
+    let message = {
+      message: `Producto añadido con éxito.`,
+      productId: result.insertId
+    }
+    res.status(201).send(JSON.stringify(message));
     console.log()
   } catch (error) {
     console.error('Error adding product:', error);

@@ -1,6 +1,7 @@
 <template>
   <v-container>
-    <h1>Productes</h1>
+    <h1 class="mb-4">Productes</h1>
+    <v-btn class="mb-5" color="green" @click="createProductModal = true">Crear nou producte</v-btn>
     <v-row>
       <v-col v-for="product in products" :key="product.id" cols="12" md="4">
         <v-card>
@@ -58,7 +59,7 @@
     </v-card>
   </v-dialog>
 
-  <!-- Alert de eliminar producto -->
+  <!-- Diálogo de eliminar producto -->
   <v-dialog v-model="deleteProductModal" width="400">
     <v-card>
       <v-card-title class="headline">Eliminar Producte</v-card-title>
@@ -71,17 +72,53 @@
       </v-card-actions>
     </v-card>
   ></v-dialog>
+
+  <!-- Diálogo de crear producto -->
+  <v-dialog v-model="createProductModal" width="600">
+    <v-card>
+      <v-card-title class="headline">Crear Producte</v-card-title>
+      <v-card-text>
+        <v-text-field label="Nom" v-model="newProduct.name"></v-text-field>
+        <v-text-field label="Descripció" v-model="newProduct.description"></v-text-field>
+        <v-text-field label="Preu" v-model="newProduct.price"></v-text-field>
+        <v-text-field label="Talla" v-model="newProduct.size"></v-text-field>
+        <v-text-field label="Color" v-model="newProduct.color"></v-text-field>
+        <v-text-field label="Stock" v-model="newProduct.stock"></v-text-field>
+        <v-select
+          label="Categoria"
+          v-model="newProduct.categoryId"
+          :items="typeCategories.map((category) => `${category.id} - ${category.name}`)"
+        ></v-select>
+        <v-select
+          label="Actiu"
+          v-model="newProduct.activated"
+          :items="['Sí', 'No']"
+          ></v-select>
+        <v-file-input
+          label="Imatge"
+          v-model="newProduct.imagePath"
+          accept="image/*"
+        ></v-file-input>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" @click="sendCreateProduct(newProduct)">Crear</v-btn>
+        <v-btn color="red" @click="createProductModal = false">Cancelar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
-import { getAllProducts, getProductById, updateProduct, deleteProduct, getAllCategories } from '@/services/communicationManager.js';
+import { getAllProducts, getProductById, addProduct, updateProduct, deleteProduct, getAllCategories } from '@/services/communicationManager.js';
 import { ref } from 'vue';
 
 const products = ref([]);
+const deleteProductModal = ref(false);
+const createProductModal = ref(false);
 const editProductModal = ref(false);
 const selectedProduct = ref({});
 const typeCategories = ref([]);
-const deleteProductModal = ref(false);
+const newProduct = ref({});
 
 const loadProducts = async () => {
   try {
@@ -143,6 +180,18 @@ const deleteProductShowModal = (productId) => {
   console.log('Producto seleccionado:', selectedProduct.value.id);
   deleteProductModal.value = true;
 };
+
+const sendCreateProduct = async (product) => {
+  product.categoryId = parseInt(product.categoryId.split(' - ')[0], 10);
+  product.activated = product.activated == 'Sí' ? 1 : 0;
+  const imageInput = document.querySelector('input[type="file"]');
+  console.log('Creando producto:', product);
+  addProduct(product, imageInput.files[0]).then((data) => {
+    console.log('Producto creado:', data);
+    createProductModal.value = false;
+    loadProducts();
+  });
+};
 </script>
 
 <style scoped>
@@ -178,4 +227,6 @@ const deleteProductShowModal = (productId) => {
 .v-card-text {
   padding-bottom: 10px;
 }
+
+
 </style>
