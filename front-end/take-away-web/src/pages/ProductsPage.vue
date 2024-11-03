@@ -10,11 +10,11 @@
           <v-card-text>
             <p>{{ product.description }}</p>
             <p><strong>Talla:</strong> {{ product.size }}</p>
-            <p><strong>Preu:</strong> ${{ Number(product.price).toFixed(2) }}</p>
+            <p><strong>Preu:</strong> {{ Number(product.price).toFixed(2) }}€</p>
             <p><strong>Stock:</strong> {{ product.stock }}</p>
           </v-card-text>
           <v-card-actions>
-            <v-btn color="primary">Editar</v-btn>
+            <v-btn color="primary" @click="editProductShowModal(product.id)">Editar</v-btn>
             <v-btn color="red">Eliminar</v-btn>
           </v-card-actions>
         </v-card>
@@ -25,7 +25,7 @@
   <p v-if="products.length == 0">No hi ha productes disponibles</p>
 
   <!-- Diálogo de editar producto -->
-  <v-dialog >
+  <v-dialog v-model="editProductModal" width="600">
     <v-card>
       <v-card-title class="headline">Editar Producte</v-card-title>
       <v-card-text>
@@ -35,6 +35,16 @@
         <v-text-field label="Talla" v-model="selectedProduct.size"></v-text-field>
         <v-text-field label="Color" v-model="selectedProduct.color"></v-text-field>
         <v-text-field label="Stock" v-model="selectedProduct.stock"></v-text-field>
+        <v-select
+          label="Categoria"
+          v-model="selectedProduct.categoryId"
+          :items="typeCategories.map((category) => `${category.id} - ${category.name}`)"
+        ></v-select>
+        <v-select
+          label="Actiu"
+          v-model="selectedProduct.activated"
+          :items="['Sí', 'No']"
+          ></v-select>
         <v-file-input
           label="Imatge"
           v-model="selectedProduct.imagePath"
@@ -42,28 +52,45 @@
         ></v-file-input>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="primary">Guardar</v-btn>
-        <v-btn color="red">Cancelar</v-btn>
+        <v-btn color="primary" @click="sendUpdateProduct(selectedProduct.id, selectedProduct)">Guardar</v-btn>
+        <v-btn color="red" @click="editProductModal = false">Cancelar</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
-
 </template>
 
 <script setup>
-import { getAllProducts } from '@/services/communicationManager.js';
-import { ref, onMounted } from 'vue';
+import { getAllProducts, getProductById, updateProduct, getAllCategories } from '@/services/communicationManager.js';
+import { ref } from 'vue';
 
 const products = ref([]);
+const editProductModal = ref(false);
+const selectedProduct = ref({});
+const typeCategories = ref([]);
 
 const loadProducts = async () => {
   try {
     products.value = await getAllProducts();
+    products.value.forEach((product) => {
+      product.categoryId = product.categoryId + ' - ' + typeCategories.value.find((category) => category.id == product.categoryId).name;
+    });
     console.log('Productos cargados:', products.value);
   } catch (error) {
     console.error('Error al cargar productos:', error);
+  } 
+};
+
+const loadCategories = async () => {
+  try {
+    typeCategories.value = await getAllCategories();
+    console.log('Categorias cargadas:', typeCategories.value);
+  } catch (error) {
+    console.error('Error al cargar categorias:', error);
   }
 };
+
+loadCategories();
+loadProducts();
 
 const getImagePath = (imagePath) => {
   let apiUrl = import.meta.env.VITE_URL_BACK;
@@ -72,7 +99,28 @@ const getImagePath = (imagePath) => {
   return imageUrl;
 };
 
-onMounted(loadProducts);
+const editProductShowModal = async (productId) => {
+  console.log('Editando producto:', productId);
+  getProductById(productId).then((data) => {
+    selectedProduct.value = data[0];
+    editProductModal.value = true;
+    selectedProduct.value.categoryId = selectedProduct.value.categoryId + ' - ' + typeCategories.value.find((category) => category.id == selectedProduct.value.categoryId).name;
+    selectedProduct.value.activated = selectedProduct.value.activated == 1 ? 'Sí' : 'No';
+    console.log('Producto seleccionado:', data[0]);
+  });
+};
+
+const sendUpdateProduct = async (productId, product) => {
+  product.categoryId = parseInt(product.categoryId.split(' - ')[0], 10);
+  product.activated = product.activated == 'Sí' ? 1 : 0;
+  const imageInput = document.querySelector('input[type="file"]');
+  console.log('Guardando producto:', productId, product);
+  updateProduct(productId, product, imageInput.files[0]).then((data) => {
+    console.log('Producto guardado:', data);
+    editProductModal.value = false;
+    loadProducts();
+  });
+};
 </script>
 
 <style scoped>

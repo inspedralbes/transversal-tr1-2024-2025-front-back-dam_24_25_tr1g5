@@ -26,7 +26,7 @@ export const getAllProducts = async () => {
 // Obtener productos activados (para usuario)
 export const getActivatedProducts = async () => {
   try {
-    const response = await fetch(`${API_URL}/productUser`);
+    const response = await fetch(`${API_URL}productUser`);
     if (!response.ok) {
       throw new Error('Error fetching activated products');
     }
@@ -40,7 +40,7 @@ export const getActivatedProducts = async () => {
 // Obtener un producto por ID
 export const getProductById = async (id) => {
   try {
-    const response = await fetch(`${API_URL}/product/${id}`);
+    const response = await fetch(`${API_URL}productUser/${id}`);
     if (!response.ok) {
       throw new Error(`Error fetching product with ID ${id}`);
     }
@@ -54,7 +54,7 @@ export const getProductById = async (id) => {
 // Añadir un producto
 export const addProduct = async (product) => {
   try {
-    const response = await fetch(`${API_URL}/product`, {
+    const response = await fetch(`${API_URL}product`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -72,16 +72,24 @@ export const addProduct = async (product) => {
 };
 
 // Editar un producto
-export const updateProduct = async (id, product) => {
+export const updateProduct = async (id, product, image) => {
+  const formData = new FormData();
+  formData.append('id', id);
+  formData.append('name', product.name);
+  formData.append('description', product.description);
+  formData.append('price', product.price);
+  formData.append('categoryId', product.categoryId);
+  formData.append('image', image);
+  formData.append('activated', product.activated);
+  formData.append('stock', product.stock);
+  formData.append('size', product.size);
+  formData.append('color', product.color);
   try {
-    const response = await fetch(`${API_URL}/product/${id}`, {
+    const response = await fetch(`${API_URL}product/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(product),
+      body: formData,
     });
-    if (!response.ok) {
+    if (!response.ok || !response.status === 200) {
       throw new Error(`Error updating product with ID ${id}`);
     }
     return await response.json();
@@ -94,7 +102,7 @@ export const updateProduct = async (id, product) => {
 // Eliminar un producto
 export const deleteProduct = async (id) => {
   try {
-    const response = await fetch(`${API_URL}/product/${id}`, {
+    const response = await fetch(`${API_URL}product/${id}`, {
       method: 'DELETE',
     });
     if (!response.ok) {
@@ -106,6 +114,20 @@ export const deleteProduct = async (id) => {
     throw error;
   }
 };
+
+//Recibir todas las categorías
+export const getAllCategories = async () => {
+  try {
+    const response = await fetch(`${API_URL}category`);
+    if (!response.ok) {
+      throw new Error('Error fetching categories');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    throw error;
+  }
+}
 
 // Recibir todos los comandos
 export const getAllCommands = async () => {

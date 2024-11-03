@@ -199,6 +199,40 @@ app.delete('/product/:id', async (req, res) => {
 
 // EDITAR UN PRODUCTO POR ID
 // Requiere un parametro 'id' el cual usamos para hacer un UPDATE de un producto en especifico, edita el producto
+// app.put('/product/:id', upload.single('image'), async (req, res) => {
+//   const { id } = req.params;
+//   const cleanedId = id.replace(/[^0-9]/g, ''); 
+//   const productId = parseInt(cleanedId, 10); // Convertir a entero
+//   const { categoryId, name, description, size, price, color, stock, activated } = req.body;
+//   let connection;
+
+//   if ( categoryId == undefined || !name || !description || !size || price == undefined || !color || stock == undefined || activated == undefined ) {
+//     return res.status(400).send('Datos incompletos.');
+//   }
+
+//   try {
+//     const imagePath = req.file.path;
+//     connection = await connectDB();
+//     // Ejecutar consulta de actualización con 'await'
+//     const [result] = await connection.query(
+//       `UPDATE products SET categoryId = ?, name = ?, description = ?, size = ?, price = ?, imagePath = ?, color = ?, stock = ?, activated = ? WHERE id = ?`, 
+//       [categoryId, name, description, size, price, imagePath, color, stock, activated, productId]
+//     );
+
+//     if (result.affectedRows > 0) {
+//       res.status(200).send(`Producto con ID ${productId} actualizado con éxito.`);
+//     } else {
+//       res.status(404).send('Producto no encontrado.');
+//     }
+//   } catch (error) {
+//     console.error('Error al actualizar el producto:', error);
+//     res.status(500).send('Error al actualizar el producto.');
+//   } finally {
+//     connection.end();
+//     console.log("Connection closed.");
+//   }
+// });
+
 app.put('/product/:id', upload.single('image'), async (req, res) => {
   const { id } = req.params;
   const cleanedId = id.replace(/[^0-9]/g, ''); 
@@ -206,21 +240,35 @@ app.put('/product/:id', upload.single('image'), async (req, res) => {
   const { categoryId, name, description, size, price, color, stock, activated } = req.body;
   let connection;
 
-  if ( categoryId == undefined || !name || !description || !size || price == undefined || !color || stock == undefined || activated == undefined ) {
+  // Validación de campos
+  if (categoryId == undefined || !name || !description || !size || price == undefined || !color || stock == undefined || activated == undefined) {
     return res.status(400).send('Datos incompletos.');
   }
 
   try {
-    const imagePath = req.file.path;
+    // Conectar a la base de datos
     connection = await connectDB();
-    // Ejecutar consulta de actualización con 'await'
+
+    // Obtener la ruta de la imagen actual
+    const [currentProduct] = await connection.query('SELECT imagePath FROM products WHERE id = ?', [productId]);
+    if (currentProduct.length === 0) {
+      return res.status(404).send('Producto no encontrado.');
+    }
+
+    // Determinar la ruta de la imagen
+    const imagePath = req.file ? `assets/${req.file.filename}` : currentProduct[0].imagePath;
+
+    // Ejecutar consulta de actualización
     const [result] = await connection.query(
       `UPDATE products SET categoryId = ?, name = ?, description = ?, size = ?, price = ?, imagePath = ?, color = ?, stock = ?, activated = ? WHERE id = ?`, 
       [categoryId, name, description, size, price, imagePath, color, stock, activated, productId]
     );
 
     if (result.affectedRows > 0) {
-      res.status(200).send(`Producto con ID ${productId} actualizado con éxito.`);
+      let message = {
+        message: `Producto con ID ${productId} actualizado con éxito.`
+      }
+      res.status(200).send(JSON.stringify(message));
     } else {
       res.status(404).send('Producto no encontrado.');
     }
@@ -228,7 +276,7 @@ app.put('/product/:id', upload.single('image'), async (req, res) => {
     console.error('Error al actualizar el producto:', error);
     res.status(500).send('Error al actualizar el producto.');
   } finally {
-    connection.end();
+    if (connection) connection.end();
     console.log("Connection closed.");
   }
 });

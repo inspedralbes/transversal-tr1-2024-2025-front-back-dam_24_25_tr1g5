@@ -79,7 +79,7 @@
                     <v-btn class="ms-auto" text="Ok"
                         @click="sendEditOrder(selectedOrder.order.id, selectedOrder.status)"
                         color="teal-accent-3">Editar</v-btn>
-                    <v-btn class="" text="Cancel" @click="editOrderModal = false" color="red">Cancel·lar</v-btn>
+                    <v-btn text="Cancel" @click="editOrderModal = false" color="red">Cancel·lar</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
