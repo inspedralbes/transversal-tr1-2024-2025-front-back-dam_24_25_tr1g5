@@ -5,12 +5,15 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
+const bcrypt = require('bcrypt');
 const app = express();
 const createDB = require(path.join(__dirname, 'configDB.js')); 
 const port = process.env.PORT;
 
 app.use(cors());
 app.use(express.json());
+
+const salt = bcrypt.genSaltSync(10);
 
 // // CREAR UNA BASE DE DATOS
 // // Ejecuta la función createDB que se encuentra en el archivo configDB.js
@@ -63,8 +66,9 @@ app.post('/login', async (req, res) => {
   let connection;
 
   try {
+    const passwordCrypt = bcrypt.hashSync(password, salt);
     connection = await connectDB();
-    const [rows] = await connection.query('SELECT * FROM users WHERE email = ? AND password = ?', [email, password]);
+    const [rows] = await connection.query('SELECT * FROM users WHERE email = ? AND password = ?', [email, passwordCrypt]);
     console.log("User: ", rows);
 
     if (rows.length == 0) {
@@ -469,7 +473,7 @@ app.post('/orders', async (req, res) => {
   const { total, products } = req.body;
   const { totalPrice, userId, pay } = total;
 
-  if (userId == undefined || totalPrice == undefined || !Array.isArray(products)) {
+  if (totalPrice == undefined || !Array.isArray(products)) {
     return res.status(400).send('Datos incompletos.');
   }
 
@@ -642,9 +646,10 @@ app.post('/user', async (req, res) => {
 
   try {
     connection = await connectDB();
+    const passwordCrypt = bcrypt.hashSync(password, salt);
     const [result] = await connection.query(
       'INSERT INTO users (firstName, lastName, email, password) VALUES (?, ?, ?, ?)', 
-      [firstName, lastName, email, password]
+      [firstName, lastName, email, passwordCrypt]
     );
     res.status(201).send('Usuario añadido con éxito.');
   } catch (error) {
@@ -756,6 +761,29 @@ app.get('/creditCard/:id', async (req, res) => {
   } catch (error) {
     console.error('Error fetching card:', error); 
     res.status(500).send('Error fetching card.');
+  } finally {
+    connection.end();
+    console.log("Connection closed.");
+  }
+});
+
+// VER UNA TARJETA DE CREDITO POR USUARIO ID
+// Requiere un parametro 'id' el cual usamos para hacer un SELECT de las tarjetas de credito de un usuario en especifico, muestra las tarjetas de credito
+app.get('/creditCardUser/:id', async (req, res) => {
+  const { id } = req.params;
+  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const userId = parseInt(cleanedId, 10); // Convertir a entero
+
+  let connection;
+
+  try {
+    connection = await connectDB();
+    const [rows] = await connection.query('SELECT * FROM cards WHERE userId = ?', [userId]);
+    console.log("Cards: ", rows); 
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching cards:', error); 
+    res.status(500).send('Error fetching cards.');
   } finally {
     connection.end();
     console.log("Connection closed.");
