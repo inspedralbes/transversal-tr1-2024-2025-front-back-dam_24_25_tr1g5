@@ -15,11 +15,11 @@ app.use(express.json());
 
 const salt = bcrypt.genSaltSync(10);
 
-// // CREAR UNA BASE DE DATOS
-// // Ejecuta la función createDB que se encuentra en el archivo configDB.js
-// (async () => {
-//   await createDB();
-// })();
+// CREAR UNA BASE DE DATOS
+// Ejecuta la función createDB que se encuentra en el archivo configDB.js
+(async () => {
+  await createDB();
+})();
 
 // CONEXIÓN A LA BASE DE DATOS
 // Hace una conexión a la base de datos usando los datos del archivo .env
@@ -28,7 +28,8 @@ const dataConnection = {
   port: process.env.DB_PORT,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
-  database: process.env.DB_NAME
+  database: process.env.DB_NAME,
+  waitForConnections: true
 };
 
 async function connectDB() {
@@ -463,6 +464,40 @@ app.get('/orders/:id', async (req, res) => {
     res.status(500).send('Error fetching order.');
   } finally {
     connection.end();
+    console.log("Connection closed.");
+  }
+});
+
+// VER PEDIDOS DE UN USUARIO
+// Requiere un parametro 'id' el cual usamos para hacer un SELECT de los pedidos de un usuario en especifico, muestra los pedidos
+app.get('/ordersUser/:id', async (req, res) => {
+  const { id } = req.params;
+  const cleanedId = id.replace(/[^0-9]/g, '');
+  const userId = parseInt(cleanedId, 10);
+  let connection;
+
+  try {
+    connection = await connectDB();
+    const [orders] = await connection.query('SELECT * FROM orders WHERE userId = ?', [userId]);
+
+    const ordersWithDetails = await Promise.all(orders.map(async (order) => {
+      const [orderLines] = await connection.query('SELECT ol.*, p.name, p.description, p.price, p.size, p.color FROM orderlines ol JOIN products p ON ol.productId = p.id WHERE ol.orderID = ?', [order.id]);
+      const productCount = orderLines.length;
+
+      return {
+        ...order,
+        productCount,
+        orderLines
+      };
+    }));
+
+    console.log("Orders with details: ", ordersWithDetails);
+    res.json(ordersWithDetails);
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).send('Error fetching orders.');
+  } finally {
+    if (connection) connection.end();
     console.log("Connection closed.");
   }
 });

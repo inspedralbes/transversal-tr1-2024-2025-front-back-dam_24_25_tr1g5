@@ -46,6 +46,7 @@ async function createDB() {
                             console.log('Start inserting data...');
                             insertDataTables().then(resolve).catch(reject);
                         }).catch(reject);
+                        connection.end();
                     });
                 } else {
                     console.log('The database exists. Restart database...');
