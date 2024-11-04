@@ -1,0 +1,10 @@
+[
+    {
+        "id": 2,
+        "userId": 3,
+        "cardName": "Alice Brown",
+        "expirationDate": "12/26",
+        "cvv": 789,
+        "cardNumber": "9999000011112222"
+    }
+]
