@@ -6,9 +6,11 @@ const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
 const bcrypt = require('bcrypt');
+const socketIo = require('socket.io');
 const app = express();
 const createDB = require(path.join(__dirname, 'configDB.js')); 
 const port = process.env.PORT;
+const io = socketIo(server);
 
 app.use(cors());
 app.use(express.json());
@@ -262,6 +264,73 @@ app.put('/product/:id', upload.single('image'), async (req, res) => {
     console.log("Connection closed.");
   }
 });
+
+//EDITAR EL STOCK DE UN PRODUCTO POR ID
+app.put('/product/buy/:id', async (req, res) => {
+  const { id } = req.params;
+  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const productId = parseInt(cleanedId, 10); // Convertir a entero
+  const { quantity } = req.body; // Obtener la cantidad a comprar del cuerpo de la solicitud
+  let connection;
+
+  // Validación de campos
+  if (quantity === undefined || quantity <= 0) {
+      return res.status(400).json({ error: 'Cantidad inválida. Debe ser mayor a 0.' });
+  }
+
+  try {
+      // Conectar a la base de datos
+      connection = await connectDB();
+
+      // Obtener el stock actual del producto
+      const [product] = await connection.query('SELECT stock, activated FROM products WHERE id = ?', [productId]);
+      if (product.length === 0) {
+          return res.status(404).json({ error: 'Producto no encontrado.' });
+      }
+
+      const currentStock = product[0].stock;
+      const activated = product[0].activated;
+
+      // Verificar si hay suficiente stock
+      if (currentStock < quantity) {
+          return res.status(400).json({ error: 'Stock insuficiente para completar la compra.' });
+      }
+
+      // Actualizar el stock restando la cantidad comprada
+      const newStock = currentStock - quantity;
+      await connection.query(`UPDATE products SET stock = ? WHERE id = ?`, [newStock, productId]);
+
+      // Si el nuevo stock es 0, actualizar el atributo activated
+      if (newStock === 0 && activated) {
+          await connection.query(`UPDATE products SET activated = 0 WHERE id = ?`, [productId]);
+          // Emitir un evento a los clientes que el producto se ha desactivado
+          io.emit('productUpdated', { productId: productId, activated: 0 });
+      }
+
+      res.status(200).json({
+          message: `Compra realizada con éxito. Stock del producto con ID ${productId} actualizado.`,
+          newStock: newStock, // Devolver el nuevo stock
+          productId: productId // Devolver el ID del producto
+      });
+  } catch (error) {
+      console.error('Error al procesar la compra del producto:', error);
+      res.status(500).json({ error: 'Error al procesar la compra del producto.' });
+  } finally {
+      if (connection) connection.end();
+      console.log("Connection closed.");
+  }
+});
+
+io.on('connection', (socket) => {
+  console.log('Cliente conectado');
+
+  socket.on('disconnect', () => {
+      console.log('Cliente desconectado');
+  });
+});
+
+
+
 
 // CRUD DE CATEGORIAS
 // VER TODAS LAS CATEGORIAS
