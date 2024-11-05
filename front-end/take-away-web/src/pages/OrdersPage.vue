@@ -1,7 +1,10 @@
 <template>
     <div class="orders-page">
         <v-container>
-            <h1>Comandes</h1>
+            <h1 class="mb-4">Comandes</h1>
+            <v-btn class="mb-5 mr-4" color="primary" @click="showAllOrders()">Totes les comandes</v-btn>
+            <v-btn class="mb-5 mr-4" color="green" @click="showOnlyOrdersPendent()">Llistat de noves comandes</v-btn>
+            <!-- <v-btn class="mb-5 mr-4" color="green" @click="()">Llistat de noves comandes</v-btn> -->
             <v-row>
                 <!-- Recorre cada orden y la muestra como una tarjeta -->
                 <v-col v-for="order in orders" :key="order.id" cols="12" md="4">
@@ -90,8 +93,9 @@
 import { ref } from 'vue'
 import { getAllCommands, getCommandById, updateCommand } from '@/services/communicationManager'
 
-const orders = ref([])
-const selectedOrder = ref(null) // Variable para guardar la comanda seleccionada
+const allOrders = ref([])   
+const selectedOrder = ref(null) 
+let orders = ref([])
 let orderDetailsModal = ref(false)
 let editOrderModal = ref(false)
 let url = import.meta.env.VITE_URL_BACK
@@ -99,6 +103,7 @@ let url = import.meta.env.VITE_URL_BACK
 const loadOrders = () => {
     getAllCommands().then((data) => {
         orders.value = data
+        allOrders.value = data
         console.log(data)
     })
 }
@@ -130,6 +135,15 @@ const sendEditOrder = (id, status) => {
         editOrderModal.value = false
         loadOrders()
     })
+}
+
+const showAllOrders = () => {
+    orders.value = allOrders.value
+}
+
+const showOnlyOrdersPendent = () => {
+    orders.value = allOrders.value
+    orders.value = orders.value.filter((order) => order.status === 'Pendent')
 }
 </script>
 

@@ -17,9 +17,9 @@ const salt = bcrypt.genSaltSync(10);
 
 // CREAR UNA BASE DE DATOS
 // Ejecuta la función createDB que se encuentra en el archivo configDB.js
-(async () => {
-  await createDB();
-})();
+// (async () => {
+//   await createDB();
+// })();
 
 // CONEXIÓN A LA BASE DE DATOS
 // Hace una conexión a la base de datos usando los datos del archivo .env
