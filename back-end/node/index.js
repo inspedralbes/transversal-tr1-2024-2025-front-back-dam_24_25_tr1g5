@@ -1,20 +1,56 @@
+/* ---------------------------- CONSTANTES ---------------------------- */
 const mysql = require('mysql2/promise');
 const fs = require('fs');
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const { Server } = require('socket.io');
+const { createServer } = require('http');
 const path = require('path');
 const multer = require('multer');
 const bcrypt = require('bcrypt');
 const app = express();
 const createDB = require(path.join(__dirname, 'configDB.js')); 
 const port = process.env.PORT;
-
+/* ---------------------------- VARIABLES ---------------------------- */
+var orders = [];
+var products = [];
+/* ---------------------------- SERVER APP ---------------------------- */
 app.use(cors());
 app.use(express.json());
+/* ---------------------------- SOCKETS ---------------------------- */
+const server = createServer(app);
+const io = new Server(server, {
+  cors: {
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      credentials: true,
+      allowedHeaders: ["Access-Control-Allow-Origin"],
+  }
+});
 
+io.on('connection', (socket) => {
+  console.log('a user connected');
+
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
+});
+/* ---------------------------- CONFIG HASH ---------------------------- */
 const salt = bcrypt.genSaltSync(10);
+/* ---------------------------- GUARDADO DE IMAGEN ---------------------------- */
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+      cb(null, 'public/'); 
+  },
+  filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + path.extname(file.originalname)); 
+  }
+});
+const upload = multer({ storage: storage });
 
+/* ---------------------------- CONEXIÓN A LA BASE DE DATOS ---------------------------- */
 // CREAR UNA BASE DE DATOS
 // Ejecuta la función createDB que se encuentra en el archivo configDB.js
 // (async () => {
@@ -42,18 +78,7 @@ async function connectDB() {
   }
 }
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-      cb(null, 'public/'); 
-  },
-  filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, uniqueSuffix + path.extname(file.originalname)); 
-  }
-});
-
-const upload = multer({ storage: storage });
-
+/* ---------------------------- RUTAS ---------------------------- */
 app.use('/assets', express.static('public'));
 
 // Login
@@ -599,21 +624,41 @@ app.put('/orders/:id', async (req, res) => {
   const { status } = req.body;
   let connection;
 
-  if (!status || status != 'Pendent' && status != 'Entregat' && status != 'Preparant') {
+  if (!status || status != 'Pendent' && status != 'Entregat' && status != 'Preparant' && status != 'Llest per recollir') {
     return res.status(400).send('Datos incompletos.');
   }
 
   try {
     connection = await connectDB();
-    // Ejecutar consulta de actualización con 'await'
-    const [result] = await connection.query(
-      `UPDATE orders SET status = ? WHERE id = ?`, 
-      [ status, orderId ]
-    );
+    let [result] = [0];
+    if (status == 'Preparant') {
+      [result] = await connection.query(
+        `UPDATE orders SET status = ?, dateStart = ? WHERE id = ?`, 
+        [ status, new Date(), orderId ]
+      );
+    } else if (status == 'Llest per recollir') {
+      [result] = await connection.query(
+        `UPDATE orders SET status = ?, dateReady = ? WHERE id = ?`,
+        [ status, new Date(), orderId ]
+      );
+    } else if (status == 'Entregat') {
+      [result] = await connection.query(
+        `UPDATE orders SET status = ?, pay = ?, dateEnd = ? WHERE id = ?`,
+        [ status, 1, new Date(), orderId ]
+      );
+    } else {
+      [result] = await connection.query(
+        `UPDATE orders SET status = ? WHERE id = ?`,
+        [ status, orderId ]
+      );
+    }
+
+    const [order] = await connection.query('SELECT * FROM orders WHERE id = ?', [orderId]);
 
     if (result.affectedRows > 0) {
       let message = {
         message: `Pedido con ID ${orderId} actualizado con éxito.`,
+        order: order[0]
       }
       res.status(200).send(JSON.stringify(message));
     } else {

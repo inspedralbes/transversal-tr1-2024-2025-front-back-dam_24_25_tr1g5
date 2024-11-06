@@ -4,7 +4,7 @@
             <h1 class="mb-4">Comandes</h1>
             <v-btn class="mb-5 mr-4" color="primary" @click="showAllOrders()">Totes les comandes</v-btn>
             <v-btn class="mb-5 mr-4" color="green" @click="showOnlyOrdersPendent()">Llistat de noves comandes</v-btn>
-            <!-- <v-btn class="mb-5 mr-4" color="green" @click="()">Llistat de noves comandes</v-btn> -->
+            <!-- <v-btn class="mb-5 mr-4" color="green" @click="showOnlyOrdersPrepar()">Llistat de noves comandes</v-btn> -->
             <v-row>
                 <!-- Recorre cada orden y la muestra como una tarjeta -->
                 <v-col v-for="order in orders" :key="order.id" cols="12" md="4">
