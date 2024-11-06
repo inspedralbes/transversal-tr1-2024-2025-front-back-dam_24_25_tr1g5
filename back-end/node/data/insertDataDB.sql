@@ -27,7 +27,7 @@ INSERT INTO products (categoryId, name, description, size, price, imagePath, col
 INSERT INTO orders (total, userId, status, pay) VALUES 
     (75.98, 1, 'Entregat', 1),
     (89.99, 2, 'Preparant', 0),
-    (70.98, 3, 'Pendent', 1);
+    (70.98, 3, 'Pendent de confirmació', 1);
 
 INSERT INTO orderlines (orderID, productId, productCategory, productName, productDescription, productSize, productPrice, productImagePath, productColor) VALUES
     (1, 1, 1, 'Samarreta Bàsica', 'Samarreta de cotó suau, ideal per al dia a dia. Ofereix una gran comoditat i un disseny senzill que combina amb tot tipus de roba casual.', 'M', 15.99, 'assets/samarreta_basica.jpg', 'Blanc'),

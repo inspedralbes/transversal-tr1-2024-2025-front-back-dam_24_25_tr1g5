@@ -40,13 +40,12 @@ CREATE TABLE IF NOT EXISTS orders (
     id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
     total DECIMAL(10,2) DEFAULT NULL,
     userId INT(11) DEFAULT NULL,
-    status VARCHAR(100) DEFAULT 'Pendent',
+    status VARCHAR(100) DEFAULT 'Pendent de confirmació',
     pay TINYINT(1) DEFAULT FALSE,
     date DATETIME DEFAULT CURRENT_TIMESTAMP ,
     dateStart DATETIME,
     dateReady DATETIME,
     dateEnd DATETIME,
-    dateCanceled DATETIME,
     FOREIGN KEY (userId) REFERENCES users (id) ON DELETE SET NULL
 );
 

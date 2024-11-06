@@ -15,6 +15,33 @@ const port = process.env.PORT;
 /* ---------------------------- VARIABLES ---------------------------- */
 var orders = [];
 var products = [];
+/* ---------------------------- CONEXIÓN A LA BASE DE DATOS ---------------------------- */
+// // CREAR UNA BASE DE DATOS
+// // Ejecuta la función createDB que se encuentra en el archivo configDB.js
+// (async () => {
+//   await createDB();
+// })();
+
+// CONEXIÓN A LA BASE DE DATOS
+// Hace una conexión a la base de datos usando los datos del archivo .env
+const dataConnection = {
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  waitForConnections: true
+};
+
+async function connectDB() {
+  try {
+    const connection = await mysql.createConnection(dataConnection);
+    console.log('Conexión a la base de datos exitosa.');
+    return connection;
+  } catch (error) {
+    console.error('Error connecting to the database: ', error);
+  }
+}
 /* ---------------------------- SERVER APP ---------------------------- */
 app.use(cors());
 app.use(express.json());
@@ -38,26 +65,37 @@ io.on('connection', (socket) => {
 });
 
 async function sendOrders() {
-  await connection.query('SELECT * FROM orders', (err, rows) => {
-    if (err) {
-      console.error('Error fetching orders:', err);
-      return;
-    }
+  let connection;
+  try {
+    connection = await connectDB();
+    const [rows] = await connection.query('SELECT * FROM orders');
+    console.log("Orders: ", rows);
     orders = rows;
-  });
-
-  io.emit('orders', orders);
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    return;
+  } finally {
+    io.emit('orders', orders);
+    connection.end();
+    console.log("Connection closed.");
+  }
 }
 
 async function sendProducts() {
-  await connection.query('SELECT * FROM products', (err, rows) => {
-    if (err) {
-      console.error('Error fetching products:', err);
-      return;
-    }
+  let connection;
+  try {
+    connection = await connectDB();
+    const [rows] = await connection.query('SELECT * FROM products');
+    console.log("Products: ", rows);
     products = rows;
-  });
-  io.emit('products', products);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return;
+  } finally {
+    io.emit('products', products);
+    connection.end();
+    console.log("Connection closed.");
+  }
 }
 /* ---------------------------- CONFIG HASH ---------------------------- */
 const salt = bcrypt.genSaltSync(10);
@@ -72,35 +110,6 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage: storage });
-
-/* ---------------------------- CONEXIÓN A LA BASE DE DATOS ---------------------------- */
-// // CREAR UNA BASE DE DATOS
-// // Ejecuta la función createDB que se encuentra en el archivo configDB.js
-(async () => {
-  await createDB();
-})();
-
-// CONEXIÓN A LA BASE DE DATOS
-// Hace una conexión a la base de datos usando los datos del archivo .env
-const dataConnection = {
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  waitForConnections: true
-};
-
-async function connectDB() {
-  try {
-    const connection = await mysql.createConnection(dataConnection);
-    console.log('Conexión a la base de datos exitosa.');
-    return connection;
-  } catch (error) {
-    console.error('Error connecting to the database: ', error);
-  }
-}
-
 /* ---------------------------- RUTAS ---------------------------- */
 app.use('/assets', express.static('public'));
 
@@ -660,7 +669,7 @@ app.put('/orders/:id', async (req, res) => {
   const { status } = req.body;
   let connection;
 
-  if (!status || status != 'Pendent' && status != 'Entregat' && status != 'Preparant' && status != 'Llest per recollir') {
+  if (!status || status != 'Pendent de confirmació' && status != 'Confirmat' && status != 'Cancelat' && status != 'Entregat' && status != 'Preparant' && status != 'Llest per recollir') {
     return res.status(400).send('Datos incompletos.');
   }
 
@@ -684,12 +693,6 @@ app.put('/orders/:id', async (req, res) => {
         [result] = await connection.query(
           `UPDATE orders SET status = ?, pay = ?, dateEnd = ? WHERE id = ?`,
           [status, 1, new Date(), orderId]
-        );
-        break;
-      case 'Cancelat':
-        [result] = await connection.query(
-          `UPDATE orders SET status = ?, dateCanceled = ? WHERE id = ?`,
-          [status, new Date(), orderId]
         );
         break;
       default:

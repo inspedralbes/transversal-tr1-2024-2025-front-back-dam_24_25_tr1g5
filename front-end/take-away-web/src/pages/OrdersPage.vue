@@ -3,22 +3,27 @@
         <v-container>
             <h1 class="mb-4">Comandes</h1>
             <v-btn class="mb-5 mr-4" color="primary" @click="showAllOrders()">Totes les comandes</v-btn>
-            <v-btn class="mb-5 mr-4" color="green" @click="showOnlyOrdersPendent()">Llistat de noves comandes</v-btn>
-            <!-- <v-btn class="mb-5 mr-4" color="green" @click="showOnlyOrdersPrepar()">Llistat de noves comandes</v-btn> -->
+            <v-btn class="mb-5 mr-4" color="green" @click="showOnlyOrdersPendentConfirmacio()">Llistat de noves comandes</v-btn>
+            <v-btn class="mb-5 mr-4" color="warning" @click="showOnlyOrdersPreparant()">Preparant comandes</v-btn>
+            <v-btn class="mb-5 mr-4" color="error" @click="showOnlyOrdersLlestPerRecollir()">Comandes per recollir</v-btn>
             <v-row>
                 <!-- Recorre cada orden y la muestra como una tarjeta -->
-                <v-col v-for="order in orders" :key="order.id" cols="12" md="4">
+                <v-col v-for="order in orders" :key="order.id" cols="12" md="4">                    
                     <v-card class="order-card">
                         <v-card-title class="order-title">
                             Comanda #{{ order.id }}
                         </v-card-title>
+                        <div class="d-flex justify-center" v-if="order.status == 'Pendent de confirmació'">
+                            <v-btn class="mb-3 mr-3" color="green" @click="sendEditOrder(order.id, 'Confirmat')">Acceptar comanda</v-btn>
+                            <v-btn class="mb-3 mr-3" color="red" @click="sendEditOrder(order.id, 'Cancelat')">Denegar comanda</v-btn>
+                        </div>
                         <v-card-subtitle class="order-subtitle">
                             <strong>Estat:</strong> {{ order.status }}
                         </v-card-subtitle>
                         <v-card-text class="order-details">
                             <p><strong>Data:</strong> {{ new Date(order.date).toLocaleString() }}</p>
                             <p><strong>Total:</strong>{{ Number(order.total).toFixed(2) }}€</p>
-                            <p><strong>Pagament:</strong> {{ order.pay === 0 ? 'Pendent' : 'Fet' }}</p>
+                            <p><strong>Pagament:</strong> {{ order.pay == 0 ? 'Pendent' : 'Fet' }}</p>
                             <p><strong>ID Usuari:</strong> {{ order.userId }}</p>
                             <p><strong>Productes:</strong> {{ order.productCount }}</p>
                         </v-card-text>
@@ -30,7 +35,7 @@
                 </v-col>
             </v-row>
         </v-container>
-        <p v-if="orders.length === 0" class="no-orders">No hi ha ordres disponibles</p>
+        <p v-if="orders.length == 0" class="no-orders">No hi ha ordres disponibles</p>
         <!-- Diálogo de detalles de la comanda -->
         <v-dialog v-model="orderDetailsModal" width="600">
             <v-card>
@@ -75,13 +80,13 @@
                 <v-card-title class="headline">Editar Comanda</v-card-title>
                 <v-card-text>
                     <p>Selecciona el nou estat de la comanda</p>
-                    <v-select v-model="selectedOrder.status" :items="['Entregat', 'Preparant', 'Pendent']"
+                    <v-select v-model="selectedOrder.status" :items="['Pendent de confirmació', 'Confirmat', 'Preparant', 'Llest per recollir', 'Entregat', 'Cancelat']"
                         label="Estat" />
                 </v-card-text>
                 <v-card-actions>
                     <v-btn class="ms-auto" text="Ok"
                         @click="sendEditOrder(selectedOrder.order.id, selectedOrder.status)"
-                        color="teal-accent-3">Editar</v-btn>
+                        color="teal-accent-3">Desar</v-btn>
                     <v-btn text="Cancel" @click="editOrderModal = false" color="red">Cancel·lar</v-btn>
                 </v-card-actions>
             </v-card>
@@ -141,9 +146,19 @@ const showAllOrders = () => {
     orders.value = allOrders.value
 }
 
-const showOnlyOrdersPendent = () => {
+const showOnlyOrdersPendentConfirmacio = () => {
     orders.value = allOrders.value
-    orders.value = orders.value.filter((order) => order.status === 'Pendent')
+    orders.value = orders.value.filter((order) => order.status == 'Pendent de confirmació')
+}
+
+const showOnlyOrdersPreparant = () => {
+    orders.value = allOrders.value
+    orders.value = orders.value.filter((order) => order.status == 'Preparant')
+}
+
+const showOnlyOrdersLlestPerRecollir = () => {
+    orders.value = allOrders.value
+    orders.value = orders.value.filter((order) => order.status == 'Llest per recollir')
 }
 </script>
 
