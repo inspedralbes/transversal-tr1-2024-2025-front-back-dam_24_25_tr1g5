@@ -10,7 +10,7 @@ const path = require('path');
 const multer = require('multer');
 const bcrypt = require('bcrypt');
 const app = express();
-const createDB = require(path.join(__dirname, 'configDB.js')); 
+const createDB = require(path.join(__dirname, 'configDB.js'));
 const port = process.env.PORT;
 /* ---------------------------- VARIABLES ---------------------------- */
 var orders = [];
@@ -22,10 +22,10 @@ app.use(express.json());
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-      origin: '*',
-      methods: ['GET', 'POST', 'PUT', 'DELETE'],
-      credentials: true,
-      allowedHeaders: ["Access-Control-Allow-Origin"],
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+    allowedHeaders: ["Access-Control-Allow-Origin"],
   }
 });
 
@@ -36,26 +36,49 @@ io.on('connection', (socket) => {
     console.log('user disconnected');
   });
 });
+
+async function sendOrders() {
+  await connection.query('SELECT * FROM orders', (err, rows) => {
+    if (err) {
+      console.error('Error fetching orders:', err);
+      return;
+    }
+    orders = rows;
+  });
+
+  io.emit('orders', orders);
+}
+
+async function sendProducts() {
+  await connection.query('SELECT * FROM products', (err, rows) => {
+    if (err) {
+      console.error('Error fetching products:', err);
+      return;
+    }
+    products = rows;
+  });
+  io.emit('products', products);
+}
 /* ---------------------------- CONFIG HASH ---------------------------- */
 const salt = bcrypt.genSaltSync(10);
 /* ---------------------------- GUARDADO DE IMAGEN ---------------------------- */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-      cb(null, 'public/'); 
+    cb(null, 'public/');
   },
   filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, uniqueSuffix + path.extname(file.originalname)); 
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
   }
 });
 const upload = multer({ storage: storage });
 
 /* ---------------------------- CONEXIÓN A LA BASE DE DATOS ---------------------------- */
-// CREAR UNA BASE DE DATOS
-// Ejecuta la función createDB que se encuentra en el archivo configDB.js
-// (async () => {
-//   await createDB();
-// })();
+// // CREAR UNA BASE DE DATOS
+// // Ejecuta la función createDB que se encuentra en el archivo configDB.js
+(async () => {
+  await createDB();
+})();
 
 // CONEXIÓN A LA BASE DE DATOS
 // Hace una conexión a la base de datos usando los datos del archivo .env
@@ -103,7 +126,7 @@ app.post('/login', async (req, res) => {
 
     res.status(201).json(rows[0]);
   } catch (error) {
-    console.error('Error fetching user:', error); 
+    console.error('Error fetching user:', error);
     res.status(500).send('Error fetching user.');
   } finally {
     connection.end();
@@ -122,7 +145,7 @@ app.get('/product', async (req, res) => {
     console.log("Products: ", rows);
     res.json(rows);
   } catch (error) {
-    console.error('Error fetching products:', error); 
+    console.error('Error fetching products:', error);
     res.status(500).send('Error fetching products.');
   } finally {
     connection.end();
@@ -140,7 +163,7 @@ app.get('/productUser', async (req, res) => {
     console.log("Products: ", rows);
     res.json(rows);
   } catch (error) {
-    console.error('Error fetching products:', error); 
+    console.error('Error fetching products:', error);
     res.status(500).send('Error fetching products.');
   } finally {
     connection.end();
@@ -152,7 +175,7 @@ app.get('/productUser', async (req, res) => {
 // Requiere un parametro 'id' el cual usamos para hacer un SELECT de un producto en especifico, muestra el producto
 app.get('/productUser/:id', async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const cleanedId = id.replace(/[^0-9]/g, '');
   const productId = parseInt(cleanedId, 10); // Convertir a entero
 
   let connection;
@@ -160,10 +183,10 @@ app.get('/productUser/:id', async (req, res) => {
   try {
     connection = await connectDB();
     const [rows] = await connection.query('SELECT * FROM products WHERE id = ?', [productId]);
-    console.log("Product: ", rows); 
+    console.log("Product: ", rows);
     res.json(rows);
   } catch (error) {
-    console.error('Error fetching product:', error); 
+    console.error('Error fetching product:', error);
     res.status(500).send('Error fetching product.');
   } finally {
     connection.end();
@@ -186,13 +209,14 @@ app.post('/product', upload.single('image'), async (req, res) => {
     console.log('Image path:', imagePath);
     connection = await connectDB();
     const [result] = await connection.query(
-      'INSERT INTO products (categoryId, name, description, size, price, imagePath, color, stock, activated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
+      'INSERT INTO products (categoryId, name, description, size, price, imagePath, color, stock, activated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [categoryId, name, description, size, price, imagePath, color, stock, activated]
     );
     let message = {
       message: `Producto añadido con éxito.`,
       productId: result.insertId
     }
+    sendProducts(); // Función de socket
     res.status(201).send(JSON.stringify(message));
     console.log()
   } catch (error) {
@@ -223,7 +247,8 @@ app.delete('/product/:id', async (req, res) => {
     if (result.affectedRows > 0) {
       fs.unlink(imagePath, (err) => {
         if (err) return res.status(500).send('Error al eliminar la imagen del sistema de archivos.');
-        
+
+        sendProducts(); // Función de socket
         const message = { message: `Producto con ID ${productId} eliminado con éxito, junto con la imagen asociada.` };
         res.status(200).send(JSON.stringify(message));
       });
@@ -237,12 +262,11 @@ app.delete('/product/:id', async (req, res) => {
   }
 });
 
-
 // EDITAR UN PRODUCTO POR ID
 // Requiere un parametro 'id' el cual usamos para hacer un UPDATE de un producto en especifico, edita el producto
 app.put('/product/:id', upload.single('image'), async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const cleanedId = id.replace(/[^0-9]/g, '');
   const productId = parseInt(cleanedId, 10); // Convertir a entero
   const { categoryId, name, description, size, price, color, stock, activated } = req.body;
   let connection;
@@ -267,11 +291,12 @@ app.put('/product/:id', upload.single('image'), async (req, res) => {
 
     // Ejecutar consulta de actualización
     const [result] = await connection.query(
-      `UPDATE products SET categoryId = ?, name = ?, description = ?, size = ?, price = ?, imagePath = ?, color = ?, stock = ?, activated = ? WHERE id = ?`, 
+      `UPDATE products SET categoryId = ?, name = ?, description = ?, size = ?, price = ?, imagePath = ?, color = ?, stock = ?, activated = ? WHERE id = ?`,
       [categoryId, name, description, size, price, imagePath, color, stock, activated, productId]
     );
 
     if (result.affectedRows > 0) {
+      sendProducts(); // Función de socket
       let message = {
         message: `Producto con ID ${productId} actualizado con éxito.`
       }
@@ -299,7 +324,7 @@ app.get('/category', async (req, res) => {
     console.log("Categories: ", rows);
     res.json(rows);
   } catch (error) {
-    console.error('Error fetching categories:', error); 
+    console.error('Error fetching categories:', error);
     res.status(500).send('Error fetching categories.');
   } finally {
     connection.end();
@@ -310,7 +335,7 @@ app.get('/category', async (req, res) => {
 // Requiere un parametro 'id' el cual usamos para hacer un SELECT de una categoria en especifico, muestra la categoria
 app.get('/category/:id', async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const cleanedId = id.replace(/[^0-9]/g, '');
   const categoryId = parseInt(cleanedId, 10); // Convertir a entero
 
   let connection;
@@ -318,10 +343,10 @@ app.get('/category/:id', async (req, res) => {
   try {
     connection = await connectDB();
     const [rows] = await connection.query('SELECT * FROM categories WHERE id = ?', [categoryId]);
-    console.log("Category: ", rows); 
+    console.log("Category: ", rows);
     res.json(rows);
   } catch (error) {
-    console.error('Error fetching category:', error); 
+    console.error('Error fetching category:', error);
     res.status(500).send('Error fetching category.');
   } finally {
     connection.end();
@@ -342,7 +367,7 @@ app.post('/category', async (req, res) => {
   try {
     connection = await connectDB();
     const [result] = await connection.query(
-      'INSERT INTO categories (name) VALUES (?)', 
+      'INSERT INTO categories (name) VALUES (?)',
       [name]
     );
     res.status(201).send('Categoria añadida con éxito.');
@@ -357,9 +382,9 @@ app.post('/category', async (req, res) => {
 
 // ELIMINAR UNA CATEGORIA POR ID
 // Requiere un parametro 'id' el cual usamos para hacer un DELETE de una categoria en especifico, borra la categoria
-app.delete('/category/:id', async ( req, res ) => {
+app.delete('/category/:id', async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const cleanedId = id.replace(/[^0-9]/g, '');
   const categoryId = parseInt(cleanedId, 10); // Convertir a entero
   let connection;
 
@@ -388,7 +413,7 @@ app.delete('/category/:id', async ( req, res ) => {
 // Requiere un parametro 'id' el cual usamos para hacer un UPDATE de una categoria en especifico, edita la categoria
 app.put('/category/:id', async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const cleanedId = id.replace(/[^0-9]/g, '');
   const categoryId = parseInt(cleanedId, 10); // Convertir a entero
   const { name } = req.body;
   let connection;
@@ -401,7 +426,7 @@ app.put('/category/:id', async (req, res) => {
     connection = await connectDB();
     // Ejecutar consulta de actualización con 'await'
     const [result] = await connection.query(
-      `UPDATE categories SET name = ? WHERE id = ?`, 
+      `UPDATE categories SET name = ? WHERE id = ?`,
       [name, categoryId]
     );
 
@@ -439,7 +464,7 @@ app.get('/orders', async (req, res) => {
     console.log("Orders with product counts: ", ordersWithCounts);
     res.json(ordersWithCounts);
   } catch (error) {
-    console.error('Error fetching orders:', error); 
+    console.error('Error fetching orders:', error);
     res.status(500).send('Error fetching orders.');
   } finally {
     if (connection) connection.end();
@@ -451,7 +476,7 @@ app.get('/orders', async (req, res) => {
 // Requiere un parametro 'id' el cual usamos para hacer un SELECT de un pedido en especifico, muestra el pedido
 app.get('/orders/:id', async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const cleanedId = id.replace(/[^0-9]/g, '');
   const orderId = parseInt(cleanedId, 10); // Convertir a entero
 
   let connection;
@@ -482,10 +507,10 @@ app.get('/orders/:id', async (req, res) => {
       user: userRows[0] // Añadir información del usuario
     };
 
-    console.log("Order Details: ", orderDetails); 
+    console.log("Order Details: ", orderDetails);
     res.json(orderDetails);
   } catch (error) {
-    console.error('Error fetching order:', error); 
+    console.error('Error fetching order:', error);
     res.status(500).send('Error fetching order.');
   } finally {
     connection.end();
@@ -545,7 +570,7 @@ app.post('/orders', async (req, res) => {
 
     // Insertar el pedido en la tabla orders
     const [result] = await connection.query(
-      'INSERT INTO orders (userId, total, pay) VALUES (?, ?, ?)', 
+      'INSERT INTO orders (userId, total, pay) VALUES (?, ?, ?)',
       [userId, totalPrice, pay]
     );
 
@@ -559,14 +584,24 @@ app.post('/orders', async (req, res) => {
         return res.status(400).send('Datos incompletos en products.');
       }
 
+      const [productResult] = await connection.query('SELECT * FROM products WHERE id = ?', [productId]);
+
       for (let i = 0; i < quantity; i++) {
         await connection.query(
-          'INSERT INTO orderlines (orderID, productId, productPrice) VALUES (?, ?, ?)', 
-          [orderId, productId, productPrice]
+          'INSERT INTO orderlines (orderID, productId, productCategory, productName, productDescription, productSize, productPrice, productImagePath, productColor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [orderId, productId, productResult[0].categoryId, productResult[0].name, productResult[0].description, productResult[0].size, productResult[0].price, productResult[0].imagePath, productResult[0].color]
         );
+
+        if (productResult[0].stock == 1) {
+          await connection.query('UPDATE products SET stock = stock - 1, activated = 0 WHERE id = ?', [productId]);
+        } else {
+          await connection.query('UPDATE products SET stock = stock - 1 WHERE id = ?', [productId]);
+        }
       }
     }
 
+    sendOrders(); // Función de socket
+    sendProducts(); // Función de socket
     await connection.commit();
     res.status(201).json({ message: 'Pedido añadido con éxito.', orderId });
   } catch (error) {
@@ -583,7 +618,7 @@ app.post('/orders', async (req, res) => {
 // Requiere un parametro 'id' el cual usamos para hacer un DELETE de un pedido en especifico, borra el pedido
 app.delete('/orders/:id', async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const cleanedId = id.replace(/[^0-9]/g, '');
   const orderId = parseInt(cleanedId, 10); // Convertir a entero
   let connection;
 
@@ -599,6 +634,7 @@ app.delete('/orders/:id', async (req, res) => {
     console.log('Resultado de la eliminación del pedido:', orderResult);
 
     if (orderResult.affectedRows > 0) {
+      sendOrders(); // Función de socket
       await connection.commit();
       res.status(200).send(`Pedido con ID ${orderId} eliminado con éxito.`);
     } else {
@@ -619,7 +655,7 @@ app.delete('/orders/:id', async (req, res) => {
 // Requiere un parametro 'id' el cual usamos para hacer un UPDATE de un pedido en especifico, edita el pedido
 app.put('/orders/:id', async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const cleanedId = id.replace(/[^0-9]/g, '');
   const orderId = parseInt(cleanedId, 10); // Convertir a entero
   const { status } = req.body;
   let connection;
@@ -630,32 +666,44 @@ app.put('/orders/:id', async (req, res) => {
 
   try {
     connection = await connectDB();
-    let [result] = [0];
-    if (status == 'Preparant') {
-      [result] = await connection.query(
-        `UPDATE orders SET status = ?, dateStart = ? WHERE id = ?`, 
-        [ status, new Date(), orderId ]
-      );
-    } else if (status == 'Llest per recollir') {
-      [result] = await connection.query(
-        `UPDATE orders SET status = ?, dateReady = ? WHERE id = ?`,
-        [ status, new Date(), orderId ]
-      );
-    } else if (status == 'Entregat') {
-      [result] = await connection.query(
-        `UPDATE orders SET status = ?, pay = ?, dateEnd = ? WHERE id = ?`,
-        [ status, 1, new Date(), orderId ]
-      );
-    } else {
-      [result] = await connection.query(
-        `UPDATE orders SET status = ? WHERE id = ?`,
-        [ status, orderId ]
-      );
+    let result;
+    switch (status) {
+      case 'Preparant':
+        [result] = await connection.query(
+          `UPDATE orders SET status = ?, dateStart = ? WHERE id = ?`,
+          [status, new Date(), orderId]
+        );
+        break;
+      case 'Llest per recollir':
+        [result] = await connection.query(
+          `UPDATE orders SET status = ?, dateReady = ? WHERE id = ?`,
+          [status, new Date(), orderId]
+        );
+        break;
+      case 'Entregat':
+        [result] = await connection.query(
+          `UPDATE orders SET status = ?, pay = ?, dateEnd = ? WHERE id = ?`,
+          [status, 1, new Date(), orderId]
+        );
+        break;
+      case 'Cancelat':
+        [result] = await connection.query(
+          `UPDATE orders SET status = ?, dateCanceled = ? WHERE id = ?`,
+          [status, new Date(), orderId]
+        );
+        break;
+      default:
+        [result] = await connection.query(
+          `UPDATE orders SET status = ? WHERE id = ?`,
+          [status, orderId]
+        );
+        break;
     }
 
     const [order] = await connection.query('SELECT * FROM orders WHERE id = ?', [orderId]);
 
     if (result.affectedRows > 0) {
+      sendOrders(); // Función de socket
       let message = {
         message: `Pedido con ID ${orderId} actualizado con éxito.`,
         order: order[0]
@@ -684,7 +732,7 @@ app.get('/user', async (req, res) => {
     console.log("Users: ", rows);
     res.json(rows);
   } catch (error) {
-    console.error('Error fetching users:', error); 
+    console.error('Error fetching users:', error);
     res.status(500).send('Error fetching users.');
   } finally {
     connection.end();
@@ -695,7 +743,7 @@ app.get('/user', async (req, res) => {
 // Requiere un parametro 'id' el cual usamos para hacer un SELECT de un usuario en especifico, muestra el usuario
 app.get('/user/:id', async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const cleanedId = id.replace(/[^0-9]/g, '');
   const userId = parseInt(cleanedId, 10); // Convertir a entero
 
   let connection;
@@ -703,10 +751,10 @@ app.get('/user/:id', async (req, res) => {
   try {
     connection = await connectDB();
     const [rows] = await connection.query('SELECT * FROM users WHERE id = ?', [userId]);
-    console.log("User: ", rows); 
+    console.log("User: ", rows);
     res.json(rows);
   } catch (error) {
-    console.error('Error fetching user:', error); 
+    console.error('Error fetching user:', error);
     res.status(500).send('Error fetching user.');
   } finally {
     connection.end();
@@ -718,7 +766,7 @@ app.get('/user/:id', async (req, res) => {
 // Requiere un parametro 'body', provenienet de un JSON, el cual usamos para hacer un INSERT de un usuario en especifico, añade el usuario
 app.post('/user', async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
-  if (!firstName || !lastName || !email || !password ) {
+  if (!firstName || !lastName || !email || !password) {
     return res.status(400).send('Datos incompletos.');
   }
 
@@ -728,7 +776,7 @@ app.post('/user', async (req, res) => {
     connection = await connectDB();
     const passwordCrypt = bcrypt.hashSync(password, salt);
     const [result] = await connection.query(
-      'INSERT INTO users (firstName, lastName, email, password) VALUES (?, ?, ?, ?)', 
+      'INSERT INTO users (firstName, lastName, email, password) VALUES (?, ?, ?, ?)',
       [firstName, lastName, email, passwordCrypt]
     );
     res.status(201).send('Usuario añadido con éxito.');
@@ -745,7 +793,7 @@ app.post('/user', async (req, res) => {
 // Requiere un parametro 'id' el cual usamos para hacer un DELETE de un usuario en especifico, borra el usuario
 app.delete('/user/:id', async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const cleanedId = id.replace(/[^0-9]/g, '');
   const userId = parseInt(cleanedId, 10); // Convertir a entero
   let connection;
 
@@ -774,7 +822,7 @@ app.delete('/user/:id', async (req, res) => {
 // Requiere un parametro 'id' el cual usamos para hacer un UPDATE de un usuario en especifico, edita el usuario
 app.put('/user/:id', async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const cleanedId = id.replace(/[^0-9]/g, '');
   const userId = parseInt(cleanedId, 10); // Convertir a entero
   const { firstName, lastName, email, password } = req.body;
   let connection;
@@ -787,7 +835,7 @@ app.put('/user/:id', async (req, res) => {
     connection = await connectDB();
     // Ejecutar consulta de actualización con 'await'
     const [result] = await connection.query(
-      `UPDATE users SET firstName = ?, lastName = ?, email = ?, password = ? WHERE id = ?`, 
+      `UPDATE users SET firstName = ?, lastName = ?, email = ?, password = ? WHERE id = ?`,
       [firstName, lastName, email, password, userId]
     );
 
@@ -816,7 +864,7 @@ app.get('/creditCard', async (req, res) => {
     console.log("Cards: ", rows);
     res.json(rows);
   } catch (error) {
-    console.error('Error fetching Cards:', error); 
+    console.error('Error fetching Cards:', error);
     res.status(500).send('Error fetching Cards.');
   } finally {
     connection.end();
@@ -828,7 +876,7 @@ app.get('/creditCard', async (req, res) => {
 // Requiere un parametro 'id' el cual usamos para hacer un SELECT de una tarjeta de credito en especifico, muestra la tarjeta de credito
 app.get('/creditCard/:id', async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const cleanedId = id.replace(/[^0-9]/g, '');
   const cardId = parseInt(cleanedId, 10); // Convertir a entero
 
   let connection;
@@ -836,10 +884,10 @@ app.get('/creditCard/:id', async (req, res) => {
   try {
     connection = await connectDB();
     const [rows] = await connection.query('SELECT * FROM cards WHERE id = ?', [cardId]);
-    console.log("Card: ", rows); 
+    console.log("Card: ", rows);
     res.json(rows);
   } catch (error) {
-    console.error('Error fetching card:', error); 
+    console.error('Error fetching card:', error);
     res.status(500).send('Error fetching card.');
   } finally {
     connection.end();
@@ -851,7 +899,7 @@ app.get('/creditCard/:id', async (req, res) => {
 // Requiere un parametro 'id' el cual usamos para hacer un SELECT de las tarjetas de credito de un usuario en especifico, muestra las tarjetas de credito
 app.get('/creditCardUser/:id', async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const cleanedId = id.replace(/[^0-9]/g, '');
   const userId = parseInt(cleanedId, 10); // Convertir a entero
 
   let connection;
@@ -859,10 +907,10 @@ app.get('/creditCardUser/:id', async (req, res) => {
   try {
     connection = await connectDB();
     const [rows] = await connection.query('SELECT * FROM cards WHERE userId = ?', [userId]);
-    console.log("Cards: ", rows); 
+    console.log("Cards: ", rows);
     res.json(rows);
   } catch (error) {
-    console.error('Error fetching cards:', error); 
+    console.error('Error fetching cards:', error);
     res.status(500).send('Error fetching cards.');
   } finally {
     connection.end();
@@ -883,7 +931,7 @@ app.post('/creditCard', async (req, res) => {
   try {
     connection = await connectDB();
     const [result] = await connection.query(
-      'INSERT INTO cards (userId, cardName, cardNumber, expirationDate, cvv) VALUES (?, ?, ?, ?, ?)', 
+      'INSERT INTO cards (userId, cardName, cardNumber, expirationDate, cvv) VALUES (?, ?, ?, ?, ?)',
       [userId, cardName, cardNumber, expirationDate, cvv]
     );
     res.status(201).send('Tarjeta de credito añadida con éxito.');
@@ -900,7 +948,7 @@ app.post('/creditCard', async (req, res) => {
 // Requiere un parametro 'id' el cual usamos para hacer un DELETE de una tarjeta de credito en especifico, borra la tarjeta de credito
 app.delete('/creditCard/:id', async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const cleanedId = id.replace(/[^0-9]/g, '');
   const cardId = parseInt(cleanedId, 10); // Convertir a entero
   let connection;
 
@@ -929,7 +977,7 @@ app.delete('/creditCard/:id', async (req, res) => {
 // Requiere un parametro 'id' el cual usamos para hacer un UPDATE de una tarjeta de credito en especifico, edita la tarjeta de credito
 app.put('/creditCard/:id', async (req, res) => {
   const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
+  const cleanedId = id.replace(/[^0-9]/g, '');
   const cardId = parseInt(cleanedId, 10); // Convertir a entero
   const { userId, cardName, cardNumber, expirationDate, cvv } = req.body;
   let connection;
@@ -942,7 +990,7 @@ app.put('/creditCard/:id', async (req, res) => {
     connection = await connectDB();
     // Ejecutar consulta de actualización con 'await'
     const [result] = await connection.query(
-      `UPDATE cards SET cardName = ?, cardNumber = ?, expirationDate = ?, cvv = ? WHERE id = ? AND userId = ?`, 
+      `UPDATE cards SET cardName = ?, cardNumber = ?, expirationDate = ?, cvv = ? WHERE id = ? AND userId = ?`,
       [cardName, cardNumber, expirationDate, cvv, cardId, userId]
     );
 

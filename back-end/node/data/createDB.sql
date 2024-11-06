@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS orders (
     dateStart DATETIME,
     dateReady DATETIME,
     dateEnd DATETIME,
+    dateCanceled DATETIME,
     FOREIGN KEY (userId) REFERENCES users (id) ON DELETE SET NULL
 );
 
@@ -53,8 +54,13 @@ CREATE TABLE IF NOT EXISTS orderlines (
     id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
     orderID INT(11) DEFAULT NULL,
     productId INT(11) DEFAULT NULL,
+    productCategory INT(11) DEFAULT NULL,
+    productName VARCHAR(100) DEFAULT NULL,
+    productDescription TEXT DEFAULT NULL,
+    productSize VARCHAR(50) DEFAULT NULL,
     productPrice DECIMAL(10,2) DEFAULT NULL,
+    productImagePath VARCHAR(255) DEFAULT NULL,
+    productColor VARCHAR(255) DEFAULT NULL,
     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (orderID) REFERENCES orders (id) ON DELETE CASCADE,
-    FOREIGN KEY (productId) REFERENCES products (id) ON DELETE CASCADE
+    FOREIGN KEY (orderID) REFERENCES orders (id) ON DELETE CASCADE
 );
