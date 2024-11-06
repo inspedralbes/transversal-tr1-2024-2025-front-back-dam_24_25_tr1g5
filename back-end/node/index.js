@@ -6,14 +6,24 @@ const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
 const bcrypt = require('bcrypt');
-const socketIo = require('socket.io');
+const { createServer } = require('http');  // Importa correctamente createServer desde 'http'
+const { Server } = require('socket.io');   // Importa Server desde socket.io
 const app = express();
 const createDB = require(path.join(__dirname, 'configDB.js')); 
 const port = process.env.PORT;
-const io = socketIo(server);
+
+
+
 
 app.use(cors());
 app.use(express.json());
+const server = createServer(app);
+const io = new Server(server,{
+  const:{
+    origin: '*',
+    methods:["GET", "POST", "DELETE", "PUT"]
+  }
+})
 
 const salt = bcrypt.genSaltSync(10);
 
@@ -265,69 +275,7 @@ app.put('/product/:id', upload.single('image'), async (req, res) => {
   }
 });
 
-//EDITAR EL STOCK DE UN PRODUCTO POR ID
-app.put('/product/buy/:id', async (req, res) => {
-  const { id } = req.params;
-  const cleanedId = id.replace(/[^0-9]/g, ''); 
-  const productId = parseInt(cleanedId, 10); // Convertir a entero
-  const { quantity } = req.body; // Obtener la cantidad a comprar del cuerpo de la solicitud
-  let connection;
 
-  // Validación de campos
-  if (quantity === undefined || quantity <= 0) {
-      return res.status(400).json({ error: 'Cantidad inválida. Debe ser mayor a 0.' });
-  }
-
-  try {
-      // Conectar a la base de datos
-      connection = await connectDB();
-
-      // Obtener el stock actual del producto
-      const [product] = await connection.query('SELECT stock, activated FROM products WHERE id = ?', [productId]);
-      if (product.length === 0) {
-          return res.status(404).json({ error: 'Producto no encontrado.' });
-      }
-
-      const currentStock = product[0].stock;
-      const activated = product[0].activated;
-
-      // Verificar si hay suficiente stock
-      if (currentStock < quantity) {
-          return res.status(400).json({ error: 'Stock insuficiente para completar la compra.' });
-      }
-
-      // Actualizar el stock restando la cantidad comprada
-      const newStock = currentStock - quantity;
-      await connection.query(`UPDATE products SET stock = ? WHERE id = ?`, [newStock, productId]);
-
-      // Si el nuevo stock es 0, actualizar el atributo activated
-      if (newStock === 0 && activated) {
-          await connection.query(`UPDATE products SET activated = 0 WHERE id = ?`, [productId]);
-          // Emitir un evento a los clientes que el producto se ha desactivado
-          io.emit('productUpdated', { productId: productId, activated: 0 });
-      }
-
-      res.status(200).json({
-          message: `Compra realizada con éxito. Stock del producto con ID ${productId} actualizado.`,
-          newStock: newStock, // Devolver el nuevo stock
-          productId: productId // Devolver el ID del producto
-      });
-  } catch (error) {
-      console.error('Error al procesar la compra del producto:', error);
-      res.status(500).json({ error: 'Error al procesar la compra del producto.' });
-  } finally {
-      if (connection) connection.end();
-      console.log("Connection closed.");
-  }
-});
-
-io.on('connection', (socket) => {
-  console.log('Cliente conectado');
-
-  socket.on('disconnect', () => {
-      console.log('Cliente desconectado');
-  });
-});
 
 
 
@@ -577,7 +525,7 @@ app.post('/orders', async (req, res) => {
   const { total, products } = req.body;
   const { totalPrice, userId, pay } = total;
 
-  if (totalPrice == undefined || !Array.isArray(products)) {
+  if (totalPrice === undefined || !Array.isArray(products) || userId === undefined || pay === undefined) {
     return res.status(400).send('Datos incompletos.');
   }
 
@@ -587,41 +535,43 @@ app.post('/orders', async (req, res) => {
     connection = await connectDB();
     await connection.beginTransaction();
 
-    // Insertar el pedido en la tabla orders
-    const [result] = await connection.query(
+    // Insertar la nueva orden en la tabla orders
+    const [orderResult] = await connection.query(
       'INSERT INTO orders (userId, total, pay) VALUES (?, ?, ?)', 
       [userId, totalPrice, pay]
     );
+    const orderId = orderResult.insertId;
 
-    const orderId = result.insertId;
-
-    // Insertar las líneas de pedido en la tabla orderlines
+    // Insertar cada línea de pedido en la tabla orderlines
     for (const product of products) {
       const { id: productId, price: productPrice, quantity } = product;
-      if (productId == undefined || productPrice == undefined || quantity == undefined) {
+
+      if (productId === undefined || productPrice === undefined || quantity === undefined) {
         await connection.rollback();
-        return res.status(400).send('Datos incompletos en products.');
+        return res.status(400).send('Datos incompletos en productos.');
       }
 
-      for (let i = 0; i < quantity; i++) {
-        await connection.query(
-          'INSERT INTO orderlines (orderID, productId, productPrice) VALUES (?, ?, ?)', 
-          [orderId, productId, productPrice]
-        );
-      }
+      await connection.query(
+        'INSERT INTO orderlines (orderID, productId, productPrice, quantity) VALUES (?, ?, ?, ?)', 
+        [orderId, productId, productPrice, quantity]
+      );
     }
 
+    // Llamar a la función para actualizar stock y emitir eventos
+    await updateStockAndNotify(products, connection, io);
+
     await connection.commit();
-    res.status(201).json({ message: 'Pedido añadido con éxito.', orderId });
+    res.status(201).json({ message: 'Pedido añadido y stock de productos actualizado con éxito.', orderId });
   } catch (error) {
     if (connection) await connection.rollback();
-    console.error('Error adding order:', error);
-    res.status(500).send('Error adding order.');
+    console.error('Error al añadir pedido y actualizar stock:', error);
+    res.status(500).json({ error: 'Error al añadir pedido y actualizar stock.' });
   } finally {
     if (connection) connection.end();
-    console.log("Connection closed.");
+    console.log("Conexión cerrada.");
   }
 });
+
 
 // ELIMINAR UN PEDIDO POR ID
 // Requiere un parametro 'id' el cual usamos para hacer un DELETE de un pedido en especifico, borra el pedido
@@ -984,6 +934,60 @@ app.put('/creditCard/:id', async (req, res) => {
   }
 });
 
+io.on('connection', (socket) => {
+  console.log('Cliente conectado.');
+
+  socket.on('disconnect', () => {
+    console.log('Cliente desconectado.');
+  });
+});
+
+async function updateStockAndNotify(products, connection, io) {
+  try {
+    for (const product of products) {
+      const { id: productId, quantity } = product;
+
+      // Obtener el stock actual y estado de activación del producto
+      const [productData] = await connection.query(
+        'SELECT stock, activated FROM products WHERE id = ?', 
+        [productId]
+      );
+
+      if (productData.length === 0) {
+        throw new Error(`Producto con ID ${productId} no encontrado.`);
+      }
+
+      const currentStock = productData[0].stock;
+
+      // Verificar si hay suficiente stock
+      if (currentStock < quantity) {
+        throw new Error(`Stock insuficiente para el producto con ID ${productId}.`);
+      }
+
+      // Actualizar el stock restando la cantidad comprada
+      const newStock = currentStock - quantity;
+      await connection.query(
+        'UPDATE products SET stock = ? WHERE id = ?', 
+        [newStock, productId]
+      );
+
+      // Si el stock llega a 0, desactivar el producto y emitir evento
+      if (newStock === 0 && productData[0].activated) {
+        await connection.query(
+          'UPDATE products SET activated = 0 WHERE id = ?', 
+          [productId]
+        );
+        // Emitir evento a los clientes conectados notificando la desactivación
+        io.emit('productUpdated', { productId, activated: 0 });
+      }
+    }
+  } catch (error) {
+    console.error('Error en updateStockAndNotify:', error);
+    throw error; // Propagar el error para manejarlo en la función que llame a updateStockAndNotify
+  }
+}
+
+
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`Example app listening at http://192.168.207.118:${port}`);
 });
