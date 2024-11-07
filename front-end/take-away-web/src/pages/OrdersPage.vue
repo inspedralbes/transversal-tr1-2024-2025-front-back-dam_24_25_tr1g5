@@ -6,10 +6,17 @@
             <v-btn class="mb-5 mr-4" color="brown" @click="showOnlyOrdersPendentConfirmacio()">Llistat de noves comandes</v-btn>
             <v-btn class="mb-5 mr-4" color="warning" @click="showOnlyOrdersPreparant()">Preparant comandes</v-btn>
             <v-btn class="mb-5 mr-4" color="deep-purple" @click="showOnlyOrdersLlestPerRecollir()">Comandes per recollir</v-btn>
+            <v-alert
+                text="Si la comanda està en verd, vol dir que s'ha començat ha preparar fa menys d'un dia. Si està en groc, vol dir que s'ha començat ha preparar fa menys de tres dies. Si està en vermell, vol dir que s'ha començat ha preparar fa més de tres dies."
+                title="Informació"
+                type="info"
+                variant="tonal"
+                class="mb-4"
+            ></v-alert>
             <v-row>
                 <!-- Recorre cada orden y la muestra como una tarjeta -->
                 <v-col v-for="order in orders" :key="order.id" cols="12" md="4">                    
-                    <v-card class="order-card bg-grey-lighten-3">
+                    <v-card class="order-card" :class="[order.status == 'Preparant' ? getOrderCardColor(order.date) : 'bg-grey-lighten-3' ]">
                         <v-card-title class="order-title">
                             Comanda #{{ order.id }}
                         </v-card-title>
@@ -154,6 +161,25 @@ const showOnlyOrdersPendentConfirmacio = () => {
 const showOnlyOrdersPreparant = () => {
     orders.value = allOrders.value
     orders.value = orders.value.filter((order) => order.status == 'Preparant')
+
+    orders.value.forEach((order) => {
+        order.color = getOrderCardColor(order.dateStart)
+    })
+}
+
+const getOrderCardColor = (orderDate) => {
+    const date = new Date(orderDate);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays <= 1) {
+        return 'bg-green-lighten-4';
+    } else if (diffDays <= 3) {
+        return 'bg-yellow-lighten-4';
+    } else {
+        return 'bg-red-lighten-4';
+    }
 }
 
 const showOnlyOrdersLlestPerRecollir = () => {

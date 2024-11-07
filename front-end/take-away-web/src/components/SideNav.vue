@@ -20,14 +20,6 @@
         </v-list-item>
       </v-list-item-group>
     </v-list>
-
-    <v-spacer></v-spacer>
-
-    <v-list-item class="d-flex justify-center">
-      <v-btn icon @click="handleProfileClick">
-        <v-icon>mdi-account-circle</v-icon>
-      </v-btn>
-    </v-list-item>
   </v-navigation-drawer>
 </template>
 
@@ -44,23 +36,16 @@ export default defineComponent({
       { icon: 'mdi-home', path: '/' },
       { icon: 'mdi-shoe-sneaker', path: '/productsPage' },
       { icon: 'mdi-cube', path: '/ordersPage' },
-      { icon: 'mdi-cog', path: '/settings' },
-      { icon: 'mdi-format-list-bulleted', path: '/list' },
-      
+      { icon: 'mdi-cog', path: '/settings' }
     ]);
 
     const handleClick = (path) => {
       router.push(path); // Navega a la ruta
     };
 
-    const handleProfileClick = () => {
-      console.log('Perfil clickeado');
-    };
-
     return {
       items,
-      handleClick,
-      handleProfileClick,
+      handleClick
     };
   },
 });
