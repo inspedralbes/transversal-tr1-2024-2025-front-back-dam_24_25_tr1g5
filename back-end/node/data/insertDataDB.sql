@@ -22,16 +22,36 @@ INSERT INTO products (categoryId, name, description, size, price, imagePath, col
     (2, 'Sandàlies', 'Sandàlies lleugeres i fresques, perfectes per a l’estiu. Dissenyades amb corretges ajustables per garantir un bon ajust i comoditat durant llargues caminades.', '39', 19.99, 'assets/sandalies.jpg', 'Beix', 60, 1),
     (3, 'Bossa de Mà', 'Bossa de mà de cuir sintètic amb gran capacitat per a ús diari. Combina funcionalitat i estil, amb múltiples compartiments per organitzar els teus objectes personals.', NULL, 45.99, 'assets/bossa.jpg', 'Negre', 40, 1),
     (3, 'Gorra', 'Gorra ajustable de cotó amb disseny casual i esportiu. Ideal per protegir-se del sol o per complementar un look desenfadat.', NULL, 12.99, 'assets/gorra.jpg', 'Blau', 120, 1),
-    (3, 'Bufanda de Llana', 'Bufanda càlida de llana natural, perfecta per als dies freds. Suau al tacte i disponible en diferents colors elegants per combinar amb qualsevol abric.', NULL, 24.99, 'assets/bufanda.jpg', 'Gris', 50, 1);
+    (3, 'Bufanda de Llana', 'Bufanda càlida de llana natural, perfecta per als dies freds. Suau al tacte i disponible en diferents colors elegants per combinar amb qualsevol abric.', NULL, 24.99, 'assets/bufanda.jpg', 'Gris', 50, 1),
+    (1, 'Camisa de Lli', 'Camisa de lli lleugera i fresca, perfecta per als dies d’estiu. Elegant i fàcil de combinar amb uns texans o pantalons curts.', 'L', 29.99, 'assets/camisa_lli.jpg', 'Blanc', 40, 1),
+    (1, 'Jersei de Llana', 'Jersei de llana càlid per als dies d’hivern. Ofereix una gran comoditat i manté la calor.', 'M', 39.99, 'assets/jersei_llana.jpg', 'Verd', 35, 1),
+    (2, 'Mocassins de Pell', 'Mocassins elegants i còmodes de pell per a ocasions formals o casuals.', '43', 79.99, 'assets/mocassins.jpg', 'Negre', 25, 1),
+    (2, 'Botes per aigua', 'Botes impermeables per a dies de pluja. Disseny pràctic i durador.', '38', 49.99, 'assets/botes_aigua.jpg', 'Verd', 20, 1),
+    (3, 'Cinturó de Cuir', 'Cinturó clàssic de cuir amb sivella metàl·lica. Complementa el teu look formal o casual.', NULL, 19.99, 'assets/cinturo.jpg', 'Negre', 75, 1),
+    (3, 'Mochila Urbana', 'Mochila amb espai per a portàtil i múltiples compartiments, ideal per a la feina o estudis.', NULL, 55.99, 'assets/mochila.jpg', 'Gris', 30, 1);
 
-INSERT INTO orders (total, userId, status, pay) VALUES 
-    (75.98, 1, 'Entregat', 1),
-    (89.99, 2, 'Preparant', 0),
-    (70.98, 3, 'Pendent de confirmació', 1);
+
+INSERT INTO orders (total, userId, status, pay, dateStart, dateReady, dateEnd) VALUES 
+    (75.98, 1, 'Entregat', 1, '2023-01-01 10:00:00', '2023-01-02 15:30:00', '2023-01-03 09:00:00'),
+    (89.99, 2, 'Preparant', 0, '2023-02-01 14:00:00', NULL, NULL),
+    (70.98, 3, 'Pendent de confirmació', 1, '2023-03-01 08:30:00', NULL, NULL),
+    (89.98, 1, 'Llest per recollir', 1, '2023-04-01 12:00:00', '2023-04-02 11:30:00', NULL),
+    (49.99, 2, 'Cancel·lat', 0, '2023-05-01 09:00:00', NULL, '2023-05-02 16:00:00'),
+    (59.99, 3, 'Entregat', 1, '2023-06-01 07:00:00', '2023-06-02 13:00:00', '2023-06-03 10:00:00'),
+    (134.97, 1, 'Preparant', 1, '2023-07-01 10:30:00', NULL, NULL),
+    (69.98, 4, 'Llest per recollir', 0, '2023-08-01 09:30:00', '2023-08-02 12:00:00', NULL);
+
 
 INSERT INTO orderlines (orderID, productId, productCategory, productName, productDescription, productSize, productPrice, productImagePath, productColor) VALUES
     (1, 1, 1, 'Samarreta Bàsica', 'Samarreta de cotó suau, ideal per al dia a dia. Ofereix una gran comoditat i un disseny senzill que combina amb tot tipus de roba casual.', 'M', 15.99, 'assets/samarreta_basica.jpg', 'Blanc'),
     (1, 4, 2, 'Sabatilles Esportives', 'Sabatilles esportives lleugeres i còmodes, dissenyades per a activitats físiques o ús diari. Proporcionen un bon suport al peu i un estil modern.', '42', 59.99, 'assets/sabatilles.jpg', 'Vermell'),
     (2, 5, 2, 'Botes de Cuir', 'Botes elegants fabricades en cuir de gran qualitat, amb un disseny clàssic que combina amb roba formal o casual. Duradores i còmodes per a tot el dia.', '40', 89.99, 'assets/botes_cuir.jpg', 'Marró'),
     (3, 7, 3, 'Bossa de Mà', 'Bossa de mà de cuir sintètic amb gran capacitat per a ús diari. Combina funcionalitat i estil, amb múltiples compartiments per organitzar els teus objectes personals.', NULL, 45.99, 'assets/bossa.jpg', 'Negre'),
-    (3, 9, 3, 'Bufanda de Llana', 'Bufanda càlida de llana natural, perfecta per als dies freds. Suau al tacte i disponible en diferents colors elegants per combinar amb qualsevol abric.', NULL, 24.99, 'assets/bufanda.jpg', 'Gris');
+    (3, 9, 3, 'Bufanda de Llana', 'Bufanda càlida de llana natural, perfecta per als dies freds. Suau al tacte i disponible en diferents colors elegants per combinar amb qualsevol abric.', NULL, 24.99, 'assets/bufanda.jpg', 'Gris'),
+    (4, 1, 1, 'Samarreta Bàsica', 'Samarreta de cotó suau, ideal per al dia a dia. Ofereix una gran comoditat i un disseny senzill que combina amb tot tipus de roba casual.', 'M', 15.99, 'assets/samarreta_basica.jpg', 'Blanc'),
+    (4, 6, 3, 'Gorra', 'Gorra ajustable de cotó amb disseny casual i esportiu. Ideal per protegir-se del sol o per complementar un look desenfadat.', NULL, 12.99, 'assets/gorra.jpg', 'Blau'),
+    (5, 5, 2, 'Botes de Cuir', 'Botes elegants fabricades en cuir de gran qualitat, amb un disseny clàssic que combina amb roba formal o casual. Duradores i còmodes per a tot el dia.', '40', 89.99, 'assets/botes_cuir.jpg', 'Marró'),
+    (6, 8, 3, 'Bufanda de Llana', 'Bufanda càlida de llana natural, perfecta per als dies freds. Suau al tacte i disponible en diferents colors elegants per combinar amb qualsevol abric.', NULL, 24.99, 'assets/bufanda.jpg', 'Gris'),
+    (7, 10, 3, 'Cinturó de Cuir', 'Cinturó clàssic de cuir amb sivella metàl·lica. Complementa el teu look formal o casual.', NULL, 19.99, 'assets/cinturo.jpg', 'Negre'),
+    (8, 9, 2, 'Botes d’aigua', 'Botes impermeables per a dies de pluja. Disseny pràctic i durador.', '38', 49.99, 'assets/botes_aigua.jpg', 'Verd'),
+    (8, 3, 1, 'Jersei de Llana', 'Jersei de llana càlid per als dies d’hivern. Ofereix una gran comoditat i manté la calor.', 'M', 39.99, 'assets/jersei_llana.jpg', 'Verd');

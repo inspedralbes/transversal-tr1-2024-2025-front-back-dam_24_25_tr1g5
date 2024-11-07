@@ -2,27 +2,31 @@
     <div class="orders-page">
         <v-container>
             <h1 class="mb-4">Comandes</h1>
+            <div v-if="timeOrderReadyModal" class="mb-4">
+                <h3>El temps estimat de preparació de comandes és: {{ timeReady }}</h3>
+            </div>
             <v-btn class="mb-5 mr-4" color="indigo" @click="showAllOrders()">Totes les comandes</v-btn>
-            <v-btn class="mb-5 mr-4" color="brown" @click="showOnlyOrdersPendentConfirmacio()">Llistat de noves comandes</v-btn>
+            <v-btn class="mb-5 mr-4" color="brown" @click="showOnlyOrdersPendentConfirmacio()">Llistat de noves
+                comandes</v-btn>
             <v-btn class="mb-5 mr-4" color="warning" @click="showOnlyOrdersPreparant()">Preparant comandes</v-btn>
-            <v-btn class="mb-5 mr-4" color="deep-purple" @click="showOnlyOrdersLlestPerRecollir()">Comandes per recollir</v-btn>
+            <v-btn class="mb-5 mr-4" color="deep-purple" @click="showOnlyOrdersLlestPerRecollir()">Comandes per
+                recollir</v-btn>
             <v-alert
                 text="Si la comanda està en verd, vol dir que s'ha començat ha preparar fa menys d'un dia. Si està en groc, vol dir que s'ha començat ha preparar fa menys de tres dies. Si està en vermell, vol dir que s'ha començat ha preparar fa més de tres dies."
-                title="Informació"
-                type="info"
-                variant="tonal"
-                class="mb-4"
-            ></v-alert>
+                title="Informació" type="info" variant="tonal" class="mb-4"></v-alert>
             <v-row>
                 <!-- Recorre cada orden y la muestra como una tarjeta -->
-                <v-col v-for="order in orders" :key="order.id" cols="12" md="4">                    
-                    <v-card class="order-card" :class="[order.status == 'Preparant' ? getOrderCardColor(order.date) : 'bg-grey-lighten-3' ]">
+                <v-col v-for="order in orders" :key="order.id" cols="12" md="4">
+                    <v-card class="order-card"
+                        :class="[order.status == 'Preparant' ? getOrderCardColor(order.date) : 'bg-grey-lighten-3']">
                         <v-card-title class="order-title">
                             Comanda #{{ order.id }}
                         </v-card-title>
                         <div class="d-flex justify-center" v-if="order.status == 'Pendent de confirmació'">
-                            <v-btn class="mb-3 mr-3" color="green" @click="sendEditOrder(order.id, 'Confirmat')">Acceptar</v-btn>
-                            <v-btn class="mb-3 mr-3" color="red" @click="sendEditOrder(order.id, 'Cancelat')">Denegar</v-btn>
+                            <v-btn class="mb-3 mr-3" color="green"
+                                @click="sendEditOrder(order.id, 'Confirmat')">Acceptar</v-btn>
+                            <v-btn class="mb-3 mr-3" color="red"
+                                @click="sendEditOrder(order.id, 'Cancel·lat')">Denegar</v-btn>
                         </div>
                         <v-card-subtitle class="order-subtitle">
                             <strong>Estat:</strong> {{ order.status }}
@@ -87,7 +91,8 @@
                 <v-card-title class="headline">Editar Comanda</v-card-title>
                 <v-card-text>
                     <p>Selecciona el nou estat de la comanda</p>
-                    <v-select v-model="selectedOrder.status" :items="['Pendent de confirmació', 'Confirmat', 'Preparant', 'Llest per recollir', 'Entregat', 'Cancelat']"
+                    <v-select v-model="selectedOrder.status"
+                        :items="['Pendent de confirmació', 'Confirmat', 'Preparant', 'Llest per recollir', 'Entregat', 'Cancel·lat']"
                         label="Estat" />
                 </v-card-text>
                 <v-card-actions>
@@ -105,11 +110,13 @@
 import { ref } from 'vue'
 import { getAllCommands, getCommandById, updateCommand } from '@/services/communicationManager'
 
-const allOrders = ref([])   
-const selectedOrder = ref(null) 
+const allOrders = ref([])
+const selectedOrder = ref(null)
 let orders = ref([])
 let orderDetailsModal = ref(false)
 let editOrderModal = ref(false)
+let timeOrderReadyModal = ref(false)
+let timeReady = ref(0)
 let url = import.meta.env.VITE_URL_BACK
 
 const loadOrders = () => {
@@ -150,21 +157,32 @@ const sendEditOrder = (id, status) => {
 }
 
 const showAllOrders = () => {
+    timeOrderReadyModal.value = false
     orders.value = allOrders.value
 }
 
 const showOnlyOrdersPendentConfirmacio = () => {
+    timeOrderReadyModal.value = false
     orders.value = allOrders.value
     orders.value = orders.value.filter((order) => order.status == 'Pendent de confirmació')
 }
 
 const showOnlyOrdersPreparant = () => {
+    timeOrderReadyModal.value = false
     orders.value = allOrders.value
     orders.value = orders.value.filter((order) => order.status == 'Preparant')
 
     orders.value.forEach((order) => {
         order.color = getOrderCardColor(order.dateStart)
     })
+}
+
+const showOnlyOrdersLlestPerRecollir = () => {
+    orders.value = allOrders.value
+    orders.value = orders.value.filter((order) => order.status == 'Llest per recollir')
+
+    timeOrderReadyModal.value = true
+    getTimeOrderReady(orders.value)
 }
 
 const getOrderCardColor = (orderDate) => {
@@ -182,9 +200,37 @@ const getOrderCardColor = (orderDate) => {
     }
 }
 
-const showOnlyOrdersLlestPerRecollir = () => {
-    orders.value = allOrders.value
-    orders.value = orders.value.filter((order) => order.status == 'Llest per recollir')
+const getTimeOrderReady = (orders) => {
+    const totalOrdersReady = orders.filter(order => order.status == 'Llest per recollir' || order.status == 'Entregat');
+    let totalTime = 0;
+
+    totalOrdersReady.forEach(order => {
+        const dateStart = new Date(order.dateStart);
+        const dateReady = new Date(order.dateReady);
+        const diffTime = Math.abs(dateReady - dateStart);
+        totalTime += diffTime;
+    });
+
+    const averageTime = totalTime / totalOrdersReady.length;
+
+    const days = Math.floor(averageTime / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((averageTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((averageTime % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((averageTime % (1000 * 60)) / 1000);
+
+    let formattedTime = '';
+    if (days > 0) {
+        formattedTime += `${days}d `;
+    }
+    if (hours > 0 || days > 0) {
+        formattedTime += `${hours}h `;
+    }
+    if (minutes > 0 || hours > 0 || days > 0) {
+        formattedTime += `${minutes}m `;
+    }
+    formattedTime += `${seconds}s`;
+
+    timeReady.value = formattedTime;
 }
 </script>
 

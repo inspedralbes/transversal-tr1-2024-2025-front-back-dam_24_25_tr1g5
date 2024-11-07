@@ -669,7 +669,7 @@ app.put('/orders/:id', async (req, res) => {
   const { status } = req.body;
   let connection;
 
-  if (!status || status != 'Pendent de confirmació' && status != 'Confirmat' && status != 'Cancelat' && status != 'Entregat' && status != 'Preparant' && status != 'Llest per recollir') {
+  if (!status || status != 'Pendent de confirmació' && status != 'Confirmat' && status != 'Cancel·lat' && status != 'Entregat' && status != 'Preparant' && status != 'Llest per recollir') {
     return res.status(400).send('Datos incompletos.');
   }
 
