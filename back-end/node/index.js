@@ -10,6 +10,7 @@ const path = require('path');
 const multer = require('multer');
 const bcrypt = require('bcrypt');
 const app = express();
+const { exec } = require('child_process');
 const createDB = require(path.join(__dirname, 'configDB.js'));
 const port = process.env.PORT;
 /* ---------------------------- VARIABLES ---------------------------- */
@@ -1009,6 +1010,45 @@ app.put('/creditCard/:id', async (req, res) => {
     connection.end();
     console.log("Connection closed.");
   }
+});
+
+// Ruta para ejecutar el primer script (Client.ipynb)
+app.get('/ejecutar-client', (req, res) => {
+  const notebookPath = path.join(__dirname, '..', 'python', 'Client.ipynb');
+  exec(`jupyter nbconvert --to notebook --execute ${notebookPath} --output resultado_cliento.ipynb`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error ejecutando el notebook Client.ipynb: ${error}`);
+      return res.status(500).send(`Error ejecutando el notebook Client.ipynb: ${error}`);
+    }
+    if (stderr) {
+      console.error(`stderr: ${stderr}`);
+      return res.status(500).send(`stderr: ${stderr}`);
+    }
+    console.log(`stdout: ${stdout}`);
+    res.send({ message: 'Notebook Client ejecutado correctamente', result: stdout });
+  });
+});
+
+// Ruta para ejecutar el segundo script (clients.ipynb)
+app.get('/ejecutar-clients', (req, res) => {
+  const notebookPath = path.join(__dirname, '..', 'python', 'clients.ipynb');
+  exec(`jupyter nbconvert --to notebook --execute ${notebookPath} --output resultado_clients.ipynb`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error ejecutando el notebook clients.ipynb: ${error}`);
+      return res.status(500).send(`Error ejecutando el notebook clients.ipynb: ${error}`);
+    }
+    if (stderr) {
+      console.error(`stderr: ${stderr}`);
+      return res.status(500).send(`stderr: ${stderr}`);
+    }
+    console.log(`stdout: ${stdout}`);
+    res.send({ message: 'Notebook Clients ejecutado correctamente', result: stdout });
+  });
+});
+
+// Levantar el servidor
+app.listen(port, () => {
+  console.log(`Servidor corriendo en http://localhost:${port}`);
 });
 
 app.listen(port, () => {

@@ -5,6 +5,7 @@ env/
 # Ignorar archivos y carpetas de configuración específicos del IDE
 .idea/
 .vscode/
+.env
 
 # Ignorar archivos de compilación de Python
 __pycache__/
