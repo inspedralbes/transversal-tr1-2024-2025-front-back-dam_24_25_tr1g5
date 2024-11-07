@@ -4,8 +4,10 @@
     <v-btn class="mb-5" color="green" @click="createProductModal = true">Crear nou producte</v-btn>
     <v-row>
       <v-col v-for="product in products" :key="product.id" cols="12" md="4">
-        <v-card>
-          <v-img :src="getImagePath(product.imagePath)" height="200px"></v-img>
+        <v-card class="bg-grey-lighten-3">
+          <div class="mt-3">
+            <v-img :src="getImagePath(product.imagePath)" height="200px"></v-img>
+          </div>
           <v-card-title>{{ product.name }}</v-card-title>
           <v-card-subtitle>{{ product.categoryId }} - {{ product.color }}</v-card-subtitle>
           <v-card-text>
@@ -53,7 +55,7 @@
         ></v-file-input>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="primary" @click="sendUpdateProduct(selectedProduct.id, selectedProduct)">Guardar</v-btn>
+        <v-btn color="primary" @click="sendUpdateProduct(selectedProduct.id, selectedProduct)">Desar</v-btn>
         <v-btn color="red" @click="editProductModal = false">Cancelar</v-btn>
       </v-card-actions>
     </v-card>
@@ -227,10 +229,6 @@ const sendDeleteProduct = async (productId) => {
 
 .v-card-title {
   font-weight: bold;
-}
-
-.v-card-subtitle {
-  color: #666;
 }
 
 .v-card-text {

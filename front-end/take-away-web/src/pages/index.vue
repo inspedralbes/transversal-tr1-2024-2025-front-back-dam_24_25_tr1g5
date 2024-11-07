@@ -49,7 +49,7 @@ const goToOrder = () => router.push('/ordersPage');
 
 .text-h1 {
   margin-top: 10px;
-  text-shadow: 8px 4px 2px #555555;;
+  text-shadow: 8px 4px 2px #959595;;
 }
 
 .button-group {

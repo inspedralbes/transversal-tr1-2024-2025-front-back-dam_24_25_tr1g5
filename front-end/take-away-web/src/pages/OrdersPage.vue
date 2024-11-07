@@ -2,20 +2,20 @@
     <div class="orders-page">
         <v-container>
             <h1 class="mb-4">Comandes</h1>
-            <v-btn class="mb-5 mr-4" color="primary" @click="showAllOrders()">Totes les comandes</v-btn>
-            <v-btn class="mb-5 mr-4" color="green" @click="showOnlyOrdersPendentConfirmacio()">Llistat de noves comandes</v-btn>
+            <v-btn class="mb-5 mr-4" color="indigo" @click="showAllOrders()">Totes les comandes</v-btn>
+            <v-btn class="mb-5 mr-4" color="brown" @click="showOnlyOrdersPendentConfirmacio()">Llistat de noves comandes</v-btn>
             <v-btn class="mb-5 mr-4" color="warning" @click="showOnlyOrdersPreparant()">Preparant comandes</v-btn>
-            <v-btn class="mb-5 mr-4" color="error" @click="showOnlyOrdersLlestPerRecollir()">Comandes per recollir</v-btn>
+            <v-btn class="mb-5 mr-4" color="deep-purple" @click="showOnlyOrdersLlestPerRecollir()">Comandes per recollir</v-btn>
             <v-row>
                 <!-- Recorre cada orden y la muestra como una tarjeta -->
                 <v-col v-for="order in orders" :key="order.id" cols="12" md="4">                    
-                    <v-card class="order-card">
+                    <v-card class="order-card bg-grey-lighten-3">
                         <v-card-title class="order-title">
                             Comanda #{{ order.id }}
                         </v-card-title>
                         <div class="d-flex justify-center" v-if="order.status == 'Pendent de confirmació'">
-                            <v-btn class="mb-3 mr-3" color="green" @click="sendEditOrder(order.id, 'Confirmat')">Acceptar comanda</v-btn>
-                            <v-btn class="mb-3 mr-3" color="red" @click="sendEditOrder(order.id, 'Cancelat')">Denegar comanda</v-btn>
+                            <v-btn class="mb-3 mr-3" color="green" @click="sendEditOrder(order.id, 'Confirmat')">Acceptar</v-btn>
+                            <v-btn class="mb-3 mr-3" color="red" @click="sendEditOrder(order.id, 'Cancelat')">Denegar</v-btn>
                         </div>
                         <v-card-subtitle class="order-subtitle">
                             <strong>Estat:</strong> {{ order.status }}
@@ -181,8 +181,6 @@ const showOnlyOrdersLlestPerRecollir = () => {
     align-self: flex-start;
     margin-left: 40px;
     margin-top: 30px;
-    /* Ajusta el margen según tus preferencias */
-    color: #fff;
     font-size: 1.5em;
 }
 
@@ -192,7 +190,6 @@ const showOnlyOrdersLlestPerRecollir = () => {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     border-radius: 8px;
     overflow: hidden;
-    color: white;
     padding: 5%;
 }
 
@@ -203,12 +200,10 @@ const showOnlyOrdersLlestPerRecollir = () => {
 
 .order-title {
     font-weight: bold;
-    color: #fff;
     text-align: center;
 }
 
 .order-subtitle {
-    color: #ddd;
     text-align: center;
     font-size: 0.9em;
     margin-bottom: 10px;
@@ -216,7 +211,6 @@ const showOnlyOrdersLlestPerRecollir = () => {
 
 .order-details {
     padding: 10px;
-    color: #eee;
 }
 
 /* Botones de acción */
@@ -228,7 +222,6 @@ const showOnlyOrdersLlestPerRecollir = () => {
 
 /* Mensaje si no hay órdenes */
 .no-orders {
-    color: #999;
     font-size: 1.2em;
     text-align: center;
     margin-top: 20px;
@@ -239,7 +232,7 @@ const showOnlyOrdersLlestPerRecollir = () => {
 }
 
 .v-list-item {
-    border-top: #ddd solid 1px;
+    border-top: #000000 solid 1px;
     display: flex;
     align-items: center;
     margin: 10px;

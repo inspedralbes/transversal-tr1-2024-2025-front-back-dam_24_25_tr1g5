@@ -1,5 +1,5 @@
 <template>
-  <v-navigation-drawer app permanent width="80" class="grey lighten-3">
+  <v-navigation-drawer app permanent width="80">
     <v-list-item class="d-flex justify-center">
       <v-icon large>mdi-alpha-n-box</v-icon>
     </v-list-item>
