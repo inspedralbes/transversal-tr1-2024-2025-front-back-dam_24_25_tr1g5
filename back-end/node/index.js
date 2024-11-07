@@ -75,7 +75,7 @@ async function sendOrders() {
     console.error('Error fetching orders:', error);
     return;
   } finally {
-    io.emit('orders', orders);
+    io.emit('orders', JSON.stringify(orders));
     connection.end();
     console.log("Connection closed.");
   }
@@ -92,7 +92,7 @@ async function sendProducts() {
     console.error('Error fetching products:', error);
     return;
   } finally {
-    io.emit('products', products);
+    io.emit('products', JSON.stringify(products));
     connection.end();
     console.log("Connection closed.");
   }

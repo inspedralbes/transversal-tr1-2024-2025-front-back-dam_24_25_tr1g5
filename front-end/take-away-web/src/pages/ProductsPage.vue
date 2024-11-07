@@ -112,6 +112,7 @@
 
 <script setup>
 import { getAllProducts, getProductById, addProduct, updateProduct, deleteProduct, getAllCategories } from '@/services/communicationManager.js';
+import socket from '@/services/sockets.js';
 import { ref } from 'vue';
 
 const products = ref([]);
@@ -203,6 +204,11 @@ const sendDeleteProduct = async (productId) => {
     loadProducts();
   });
 };
+
+socket.on('products', (data) => {
+  console.log('Recibido evento de producto:', data);
+  products.value = data;
+});
 </script>
 
 <style scoped>
