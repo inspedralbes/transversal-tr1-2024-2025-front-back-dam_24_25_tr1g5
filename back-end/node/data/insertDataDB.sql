@@ -50,11 +50,11 @@ INSERT INTO orders (total, userId, status, pay, dateStart, dateReady, dateEnd) V
     (75.98, 1, 'Entregat', 1, '2023-01-01 10:00:00', '2023-01-02 15:30:00', '2023-01-03 09:00:00'),
     (89.99, 2, 'Preparant', 0, '2023-02-01 14:00:00', NULL, NULL),
     (70.98, 3, 'Pendent de confirmació', 1, '2023-03-01 08:30:00', NULL, NULL),
-    (89.98, 1, 'Llest per recollir', 1, '2023-04-01 12:00:00', '2023-04-02 11:30:00', NULL),
-    (49.99, 2, 'Cancel·lat', 0, '2023-05-01 09:00:00', NULL, '2023-05-02 16:00:00'),
-    (59.99, 3, 'Entregat', 1, '2023-06-01 07:00:00', '2023-06-02 13:00:00', '2023-06-03 10:00:00'),
-    (134.97, 1, 'Preparant', 1, '2023-07-01 10:30:00', NULL, NULL),
-    (69.98, 4, 'Llest per recollir', 0, '2023-08-01 09:30:00', '2023-08-02 12:00:00', NULL);
+    (28.98, 1, 'Llest per recollir', 1, '2023-04-01 12:00:00', '2023-04-02 11:30:00', NULL),
+    (89.99, 2, 'Cancel·lat', 0, '2023-05-01 09:00:00', NULL, '2023-05-02 16:00:00'),
+    (24.99, 3, 'Entregat', 1, '2023-06-01 07:00:00', '2023-06-02 13:00:00', '2023-06-03 10:00:00'),
+    (19.99, 1, 'Preparant', 1, '2023-07-01 10:30:00', NULL, NULL),
+    (89.98, 4, 'Llest per recollir', 0, '2023-08-01 09:30:00', '2023-08-02 12:00:00', NULL);
 
 
 INSERT INTO orderlines (orderID, productId, productCategory, productName, productDescription, productSize, productPrice, productImagePath, productColor) VALUES
@@ -64,9 +64,9 @@ INSERT INTO orderlines (orderID, productId, productCategory, productName, produc
     (3, 7, 3, 'Bossa de Mà', 'Bossa de mà de cuir sintètic amb gran capacitat per a ús diari. Combina funcionalitat i estil, amb múltiples compartiments per organitzar els teus objectes personals.', NULL, 45.99, 'assets/bossa.jpg', 'Negre'),
     (3, 9, 3, 'Bufanda de Llana', 'Bufanda càlida de llana natural, perfecta per als dies freds. Suau al tacte i disponible en diferents colors elegants per combinar amb qualsevol abric.', NULL, 24.99, 'assets/bufanda.jpg', 'Gris'),
     (4, 1, 1, 'Samarreta Bàsica', 'Samarreta de cotó suau, ideal per al dia a dia. Ofereix una gran comoditat i un disseny senzill que combina amb tot tipus de roba casual.', 'M', 15.99, 'assets/samarreta_basica.jpg', 'Blanc'),
-    (4, 6, 3, 'Gorra', 'Gorra ajustable de cotó amb disseny casual i esportiu. Ideal per protegir-se del sol o per complementar un look desenfadat.', NULL, 12.99, 'assets/gorra.jpg', 'Blau'),
+    (4, 8, 3, 'Gorra', 'Gorra ajustable de cotó amb disseny casual i esportiu. Ideal per protegir-se del sol o per complementar un look desenfadat.', NULL, 12.99, 'assets/gorra.jpg', 'Blau'),
     (5, 5, 2, 'Botes de Cuir', 'Botes elegants fabricades en cuir de gran qualitat, amb un disseny clàssic que combina amb roba formal o casual. Duradores i còmodes per a tot el dia.', '40', 89.99, 'assets/botes_cuir.jpg', 'Marró'),
-    (6, 8, 3, 'Bufanda de Llana', 'Bufanda càlida de llana natural, perfecta per als dies freds. Suau al tacte i disponible en diferents colors elegants per combinar amb qualsevol abric.', NULL, 24.99, 'assets/bufanda.jpg', 'Gris'),
-    (7, 10, 3, 'Cinturó de Cuir', 'Cinturó clàssic de cuir amb sivella metàl·lica. Complementa el teu look formal o casual.', NULL, 19.99, 'assets/cinturo.jpg', 'Negre'),
-    (8, 9, 2, 'Botes d’aigua', 'Botes impermeables per a dies de pluja. Disseny pràctic i durador.', '38', 49.99, 'assets/botes_aigua.jpg', 'Verd'),
-    (8, 3, 1, 'Jersei de Llana', 'Jersei de llana càlid per als dies d’hivern. Ofereix una gran comoditat i manté la calor.', 'M', 39.99, 'assets/jersei_llana.jpg', 'Verd');
+    (6, 9, 3, 'Bufanda de Llana', 'Bufanda càlida de llana natural, perfecta per als dies freds. Suau al tacte i disponible en diferents colors elegants per combinar amb qualsevol abric.', NULL, 24.99, 'assets/bufanda.jpg', 'Gris'),
+    (7, 14, 3, 'Cinturó de Cuir', 'Cinturó clàssic de cuir amb sivella metàl·lica. Complementa el teu look formal o casual.', NULL, 19.99, 'assets/cinturo.jpg', 'Negre'),
+    (8, 13, 2, 'Botes d’aigua', 'Botes impermeables per a dies de pluja. Disseny pràctic i durador.', '38', 49.99, 'assets/botes_aigua.jpg', 'Verd'),
+    (8, 11, 1, 'Jersei de Llana', 'Jersei de llana càlid per als dies d’hivern. Ofereix una gran comoditat i manté la calor.', 'M', 39.99, 'assets/jersei_llana.jpg', 'Verd');

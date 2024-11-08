@@ -842,11 +842,12 @@ app.put('/user/:id', async (req, res) => {
   }
 
   try {
+    let passwordCrypt = bcrypt.hashSync(password, salt);
     connection = await connectDB();
     // Ejecutar consulta de actualización con 'await'
     const [result] = await connection.query(
       `UPDATE users SET firstName = ?, lastName = ?, email = ?, password = ? WHERE id = ?`,
-      [firstName, lastName, email, password, userId]
+      [firstName, lastName, email, passwordCrypt, userId]
     );
 
     if (result.affectedRows > 0) {
