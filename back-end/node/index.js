@@ -14,7 +14,8 @@ const createDB = require(path.join(__dirname, 'configDB.js'));
 const port = process.env.PORT;
 /* ---------------------------- VARIABLES ---------------------------- */
 var orders = [];
-var products = [];
+var productsWeb = [];
+var productsAndroid = [];
 /* ---------------------------- CONEXIÓN A LA BASE DE DATOS ---------------------------- */
 // // CREAR UNA BASE DE DATOS
 // // Ejecuta la función createDB que se encuentra en el archivo configDB.js
