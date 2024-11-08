@@ -173,7 +173,7 @@ const sendUpdateProduct = async (productId, product) => {
   updateProduct(productId, product, imageInput.files[0]).then((data) => {
     console.log('Producto guardado:', data);
     editProductModal.value = false;
-    loadProducts();
+    // loadProducts();
   });
 };
 
@@ -192,7 +192,7 @@ const sendCreateProduct = async (product) => {
   addProduct(product, imageInput.files[0]).then((data) => {
     console.log('Producto creado:', data);
     createProductModal.value = false;
-    loadProducts();
+    // loadProducts();
   });
 };
 
@@ -201,11 +201,11 @@ const sendDeleteProduct = async (productId) => {
   deleteProduct(productId).then((data) => {
     console.log('Producto eliminado:', data);
     deleteProductModal.value = false;
-    loadProducts();
+    // loadProducts();
   });
 };
 
-socket.on('products', (data) => {
+socket.on('productsWeb', (data) => {
   console.log('Recibido evento de producto:', data);
   products.value = data;
 });

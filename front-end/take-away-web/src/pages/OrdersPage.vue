@@ -108,7 +108,7 @@
 
 <script setup>
 import { ref } from 'vue'
-// import socket from '@/services/sockets.js'
+import socket from '@/services/sockets.js'
 import { getAllCommands, getCommandById, updateCommand } from '@/services/communicationManager'
 
 const allOrders = ref([])
@@ -153,7 +153,6 @@ const sendEditOrder = (id, status) => {
     }
     updateCommand(id, editStatus).then(() => {
         editOrderModal.value = false
-        loadOrders()
     })
 }
 
@@ -182,8 +181,8 @@ const showOnlyOrdersLlestPerRecollir = () => {
     orders.value = allOrders.value
     orders.value = orders.value.filter((order) => order.status == 'Llest per recollir')
 
-    // timeOrderReadyModal.value = true
-    // getTimeOrderReady(orders.value)
+    timeOrderReadyModal.value = true
+    getTimeOrderReady(orders.value)
 }
 
 const getOrderCardColor = (orderDate) => {
@@ -201,43 +200,43 @@ const getOrderCardColor = (orderDate) => {
     }
 }
 
-// const getTimeOrderReady = (orders) => {
-//     const totalOrdersReady = orders.filter(order => order.status == 'Llest per recollir' || order.status == 'Entregat');
-//     let totalTime = 0;
+const getTimeOrderReady = (orders) => {
+    const totalOrdersReady = orders.filter(order => order.status == 'Llest per recollir' || order.status == 'Entregat');
+    let totalTime = 0;
 
-//     totalOrdersReady.forEach(order => {
-//         const dateStart = new Date(order.dateStart);
-//         const dateReady = new Date(order.dateReady);
-//         const diffTime = Math.abs(dateReady - dateStart);
-//         totalTime += diffTime;
-//     });
+    totalOrdersReady.forEach(order => {
+        const dateStart = new Date(order.dateStart);
+        const dateReady = new Date(order.dateReady);
+        const diffTime = Math.abs(dateReady - dateStart);
+        totalTime += diffTime;
+    });
 
-//     const averageTime = totalTime / totalOrdersReady.length;
+    const averageTime = totalTime / totalOrdersReady.length;
 
-//     const days = Math.floor(averageTime / (1000 * 60 * 60 * 24));
-//     const hours = Math.floor((averageTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-//     const minutes = Math.floor((averageTime % (1000 * 60 * 60)) / (1000 * 60));
-//     const seconds = Math.floor((averageTime % (1000 * 60)) / 1000);
+    const days = Math.floor(averageTime / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((averageTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((averageTime % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((averageTime % (1000 * 60)) / 1000);
 
-//     let formattedTime = '';
-//     if (days > 0) {
-//         formattedTime += `${days}d `;
-//     }
-//     if (hours > 0 || days > 0) {
-//         formattedTime += `${hours}h `;
-//     }
-//     if (minutes > 0 || hours > 0 || days > 0) {
-//         formattedTime += `${minutes}m `;
-//     }
-//     formattedTime += `${seconds}s`;
+    let formattedTime = '';
+    if (days > 0) {
+        formattedTime += `${days}d `;
+    }
+    if (hours > 0 || days > 0) {
+        formattedTime += `${hours}h `;
+    }
+    if (minutes > 0 || hours > 0 || days > 0) {
+        formattedTime += `${minutes}m `;
+    }
+    formattedTime += `${seconds}s`;
 
-//     timeReady.value = formattedTime;
-// }
+    timeReady.value = formattedTime;
+}
 
-// socket.on('orders', (data) => {
-//     console.log('Recibida orden', data)
-//     allOrders.value = data
-// });
+socket.on('ordersWeb', (data) => {
+    console.log('Recibida orden', data)
+    allOrders.value = data
+});
 </script>
 
 <style scoped>
