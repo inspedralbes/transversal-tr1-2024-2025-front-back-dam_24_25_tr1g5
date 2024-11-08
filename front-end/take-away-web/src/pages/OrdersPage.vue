@@ -114,6 +114,8 @@ import { getAllCommands, getCommandById, updateCommand } from '@/services/commun
 const allOrders = ref([])
 const selectedOrder = ref(null)
 let orders = ref([])
+let ordersForCalculateTime = ref([])
+let statusOrder = ref('')
 let orderDetailsModal = ref(false)
 let editOrderModal = ref(false)
 let timeOrderReadyModal = ref(false)
@@ -163,12 +165,14 @@ const showAllOrders = () => {
 
 const showOnlyOrdersPendentConfirmacio = () => {
     timeOrderReadyModal.value = false
+    statusOrder.value = 'Pendent de confirmació'
     orders.value = allOrders.value
     orders.value = orders.value.filter((order) => order.status == 'Pendent de confirmació')
 }
 
 const showOnlyOrdersPreparant = () => {
     timeOrderReadyModal.value = false
+    statusOrder.value = 'Preparant'
     orders.value = allOrders.value
     orders.value = orders.value.filter((order) => order.status == 'Preparant')
 
@@ -179,10 +183,13 @@ const showOnlyOrdersPreparant = () => {
 
 const showOnlyOrdersLlestPerRecollir = () => {
     orders.value = allOrders.value
+    statusOrder.value = 'Llest per recollir'
     orders.value = orders.value.filter((order) => order.status == 'Llest per recollir')
 
     timeOrderReadyModal.value = true
-    getTimeOrderReady(orders.value)
+
+    ordersForCalculateTime.value = allOrders.value.filter((order) => order.status == 'Llest per recollir' || order.status == 'Entregat')
+    getTimeOrderReady(ordersForCalculateTime.value)
 }
 
 const getOrderCardColor = (orderDate) => {
@@ -236,6 +243,16 @@ const getTimeOrderReady = (orders) => {
 socket.on('ordersWeb', (data) => {
     console.log('Recibida orden', data)
     allOrders.value = data
+
+    if (statusOrder.value == 'Pendent de confirmació') {
+        showOnlyOrdersPendentConfirmacio()
+    } else if (statusOrder.value == 'Preparant') {
+        showOnlyOrdersPreparant()
+    } else if (statusOrder.value == 'Llest per recollir') {
+        showOnlyOrdersLlestPerRecollir()
+    } else {
+        showAllOrders()
+    }
 });
 </script>
 
