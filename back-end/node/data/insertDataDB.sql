@@ -2,7 +2,17 @@ INSERT INTO users (password, email, firstName, lastName, paymentMethod) VALUES
     ('password123', 'johndoe@gmail.com', 'John', 'Doe', 1),
     ('securepass456', 'janesmith@gmail.com', 'Jane', 'Smith', 0),
     ('mypass789', 'alicebrown@gmail.com', 'Alice', 'Brown', 1),
-    ('password234', 'bobjohnson@gmail.com', 'Bob', 'Johnson', 0);
+    ('password234', 'bobjohnson@gmail.com', 'Bob', 'Johnson', 0),
+    ('qwerty123', 'michaeljohnson@gmail.com', 'Michael', 'Johnson', 1),
+    ('pAssw0rd!', 'emilywhite@gmail.com', 'Emily', 'White', 0),
+    ('letmein456', 'williamjones@gmail.com', 'William', 'Jones', 1),
+    ('supersecret789', 'oliviataylor@gmail.com', 'Olivia', 'Taylor', 0),
+    ('mypassword101', 'danielmartin@gmail.com', 'Daniel', 'Martin', 1),
+    ('password202', 'sarahlee@gmail.com', 'Sarah', 'Lee', 0),
+    ('hunter3', 'jamesbrown@gmail.com', 'James', 'Brown', 1),
+    ('ilovecats99', 'chloewilson@gmail.com', 'Chloe', 'Wilson', 0),
+    ('helloWorld42', 'davidgarcia@gmail.com', 'David', 'Garcia', 1),
+    ('baseballfan', 'sophialopez@gmail.com', 'Sophia', 'Lopez', 0);
 
 INSERT INTO categories (name) VALUES 
     ('Roba'),
@@ -11,7 +21,12 @@ INSERT INTO categories (name) VALUES
 
 INSERT INTO cards (userId, cardName, expirationDate, cvv, cardNumber) VALUES 
     (1, 'John Doe', '12/25', 123, '1111222233334444'),
-    (3, 'Alice Brown', '12/26', 789, '9999000011112222');
+    (3, 'Alice Brown', '12/26', 789, '9999000011112222'),
+    (5, 'Michael Johnson', '11/27', 321, '5555666677778888'),
+    (7, 'William Jones', '08/26', 654, '4444555566667777'),
+    (9, 'Daniel Martin', '05/28', 987, '3333444455556666'),
+    (11, 'James Brown', '03/29', 213, '2222333344445555'),
+    (13, 'David Garcia', '09/30', 432, '1111222233334445');
 
 INSERT INTO products (categoryId, name, description, size, price, imagePath, color, stock, activated) VALUES 
     (1, 'Samarreta Bàsica', 'Samarreta de cotó suau, ideal per al dia a dia. Ofereix una gran comoditat i un disseny senzill que combina amb tot tipus de roba casual.', 'M', 15.99, 'assets/samarreta_basica.jpg', 'Blanc', 100, 1),
