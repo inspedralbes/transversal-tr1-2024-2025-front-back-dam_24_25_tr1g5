@@ -1,3 +1,6 @@
+const axios = require('axios');
+require('dotenv').config();
+
 const API_URL = import.meta.env.VITE_URL_BACK; // Cambia el puerto si es necesario
 
 export const getAllProducts = async () => {
@@ -181,5 +184,29 @@ export const updateCommand = async (id, command) => {
   } catch (error) {
     console.error(`Error updating command with ID ${id}:`, error);
     throw error;
+  }
+};
+
+module.exports = {
+  async obtenerHistorialVentas(correoCliente) {
+    try {
+      const response = await axios.get(`${PYTHON_URL}/historial-ventas`, {
+        params: { correo: correoCliente }
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error al obtener historial de ventas:", error.message);
+      throw error;
+    }
+  },
+
+  async obtenerResumenVentas() {
+    try {
+      const response = await axios.get(`${PYTHON_URL}/resumen-ventas`);
+      return response.data;
+    } catch (error) {
+      console.error("Error al obtener resumen de ventas:", error.message);
+      throw error;
+    }
   }
 };

@@ -10,8 +10,9 @@ const path = require('path');
 const multer = require('multer');
 const bcrypt = require('bcrypt');
 const app = express();
-const { exec } = require('child_process');
+const { spawn } = require('child_process');
 const createDB = require(path.join(__dirname, 'configDB.js'));
+const routes = require('routes');
 const port = process.env.PORT;
 /* ---------------------------- VARIABLES ---------------------------- */
 var orders = [];
@@ -46,6 +47,7 @@ async function connectDB() {
 /* ---------------------------- SERVER APP ---------------------------- */
 app.use(cors());
 app.use(express.json());
+app.use(routes);
 /* ---------------------------- SOCKETS ---------------------------- */
 const server = createServer(app);
 const io = new Server(server, {
@@ -1012,45 +1014,91 @@ app.put('/creditCard/:id', async (req, res) => {
   }
 });
 
-// Ruta para ejecutar el primer script (Client.ipynb)
-app.get('/ejecutar-client', (req, res) => {
-  const notebookPath = path.join(__dirname, '..', 'python', 'Client.ipynb');
-  exec(`jupyter nbconvert --to notebook --execute ${notebookPath} --output resultado_cliento.ipynb`, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error ejecutando el notebook Client.ipynb: ${error}`);
-      return res.status(500).send(`Error ejecutando el notebook Client.ipynb: ${error}`);
+// Ruta para obtener el historial de ventas de un cliente
+app.get('/historial-ventas', (req, res) => {
+  const correoCliente = req.query.correo;
+
+  // Validar que el correo tenga un formato correcto
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(correoCliente)) {
+    return res.status(400).json({ error: "Correo electrónico no válido" });
+  }
+
+  const jupyter = spawn('jupyter', ['nbconvert', '--to', 'script', '--stdout', 'Client.ipynb']);
+
+  let dataString = '';
+
+  jupyter.stdout.on('data', (data) => {
+    dataString += data.toString();
+  });
+
+  jupyter.stderr.on('data', (data) => {
+    console.error(`stderr: ${data}`);
+  });
+
+  jupyter.on('close', (code) => {
+    console.log(`child process exited with code ${code}`);
+    try {
+      // Ejecutar el script generado
+      const python = spawn('python', ['-c', dataString, correoCliente]);
+      let result = '';
+
+      python.stdout.on('data', (data) => {
+        result += data.toString();
+      });
+
+      python.stderr.on('data', (data) => {
+        console.error(`Python stderr: ${data}`);
+      });
+
+      python.on('close', (code) => {
+        console.log(`Python process exited with code ${code}`);
+        try {
+          const jsonData = JSON.parse(result);
+          res.json(jsonData);
+        } catch (error) {
+          console.error('Error parsing Python script output:', error);
+          res.status(500).json({ error: "Error al procesar los datos del historial de ventas" });
+        }
+      });
+    } catch (error) {
+      console.error('Error executing Python script:', error);
+      res.status(500).json({ error: "Error al ejecutar el script" });
     }
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
-      return res.status(500).send(`stderr: ${stderr}`);
-    }
-    console.log(`stdout: ${stdout}`);
-    res.send({ message: 'Notebook Client ejecutado correctamente', result: stdout });
   });
 });
 
-// Ruta para ejecutar el segundo script (clients.ipynb)
-app.get('/ejecutar-clients', (req, res) => {
-  const notebookPath = path.join(__dirname, '..', 'python', 'clients.ipynb');
-  exec(`jupyter nbconvert --to notebook --execute ${notebookPath} --output resultado_clients.ipynb`, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error ejecutando el notebook clients.ipynb: ${error}`);
-      return res.status(500).send(`Error ejecutando el notebook clients.ipynb: ${error}`);
+app.get('/resumen-ventas', (req, res) => {
+  const python = spawn('python', ['clients.py']);
+  let dataString = '';
+
+  python.stdout.on('data', (data) => {
+    dataString += data.toString();
+  });
+
+  python.stderr.on('data', (data) => {
+    console.error(`Error en el script Python: ${data}`);
+  });
+
+  python.on('close', (code) => {
+    console.log(`El script Python se cerró con código ${code}`);
+    try {
+      const jsonData = JSON.parse(dataString);
+      res.json(jsonData);
+    } catch (error) {
+      console.error('Error al parsear la salida del script Python:', error);
+      res.status(500).json({ error: "Error al procesar el resumen de ventas" });
     }
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
-      return res.status(500).send(`stderr: ${stderr}`);
-    }
-    console.log(`stdout: ${stdout}`);
-    res.send({ message: 'Notebook Clients ejecutado correctamente', result: stdout });
+  });
+  
+  python.on('error', (error) => {
+    console.error(`Error al ejecutar el script: ${error.message}`);
+    res.status(500).json({ error: "Error al ejecutar el script" });
   });
 });
+
 
 // Levantar el servidor
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
-});
-
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
 });

@@ -1,58 +1,53 @@
 <template>
-    <v-app>
-      <v-container>
-        <v-row justify="center">
-          <v-col cols="12" sm="6" md="4">
-            <v-card>
-              <v-card-title>{{ titulo }}</v-card-title>
-              <v-card-subtitle>{{ mensajeAleatorio }}</v-card-subtitle>
-              <v-card-actions>
-                <v-btn @click="generarMensajeAleatorio" color="primary">Generar mensaje</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-app>
-  </template>
-  
-  <script>
-  export default {
-    name: 'RandomMessage',
-    data() {
-      return {
-        titulo: 'Aplicación de Vuetify',
-        mensajes: [
-          '¡Hola, Mundo!',
-          'Vue.js y Vuetify son geniales',
-          '¡Esta es una app increíble!',
-          '¡Generando mensajes aleatorios!',
-          'Aprendiendo Vue y Vuetify'
-        ],
-        mensajeAleatorio: '',
-      };
+  <v-container>
+    <!-- ... otros elementos ... -->
+    <v-btn @click="obtenerResumenVentas">Cargar Resumen</v-btn>
+    <v-data-table
+      v-if="resumenVentas.length > 0"
+      :headers="headersResumen"
+      :items="resumenVentas"
+      :items-per-page="10"
+    ></v-data-table>
+    <p v-else-if="errorResumen">{{ errorResumen }}</p>
+  </v-container>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+  data() {
+    return {
+      resumenVentas: [],
+      errorResumen: null,
+      headersResumen: [
+        { text: 'ID', value: 'ID' },
+        { text: 'Cliente', value: 'Cliente' },
+        { text: 'Ventas', value: 'Ventas' },
+        { text: 'Total', value: 'Total' },
+      ],
+    };
+  },
+  methods: {
+    async obtenerResumenVentas() {
+      try {
+        this.errorResumen = null;
+        const response = await axios.get('/resumen-ventas');
+        
+        // Intenta parsear la respuesta como JSON
+        const data = JSON.parse(response.data);
+        
+        if (Array.isArray(data)) {
+          this.resumenVentas = data;
+        } else {
+          throw new Error('La respuesta no es un array válido');
+        }
+      } catch (error) {
+        console.error('Error al obtener el resumen de ventas:', error);
+        this.errorResumen = 'Error al obtener el resumen de ventas. Por favor, intente de nuevo.';
+        this.resumenVentas = [];
+      }
     },
-    methods: {
-      generarMensajeAleatorio() {
-        const randomIndex = Math.floor(Math.random() * this.mensajes.length);
-        this.mensajeAleatorio = this.mensajes[randomIndex];
-      },
-    },
-    mounted() {
-      this.generarMensajeAleatorio();
-    },
-  };
-  </script>
-  
-  <style scoped>
-  /* Estilos específicos para este componente */
-  v-card {
-    max-width: 400px;
-    margin: 20px auto;
-  }
-  
-  v-btn {
-    font-size: 16px;
-  }
-  </style>
-  
+  },
+};
+</script>
