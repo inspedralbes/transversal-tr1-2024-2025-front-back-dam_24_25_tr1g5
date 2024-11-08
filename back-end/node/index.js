@@ -86,15 +86,19 @@ async function sendProducts() {
   let connection;
   try {
     connection = await connectDB();
-    const [rows] = await connection.query('SELECT * FROM products');
-    console.log("Products: ", rows);
-    products = rows;
+    const [rowsWeb] = await connection.query('SELECT * FROM products');
+    console.log("Products: ", rowsWeb);
+    productsWeb = rowsWeb;
+
+    const [rowsAndroid] = await connection.query('SELECT * FROM products WHERE activated = 1');
+    console.log("Products: ", rowsAndroid);
+    productsAndroid = rowsAndroid;
   } catch (error) {
     console.error('Error fetching products:', error);
     return;
   } finally {
-    io.emit('productsAndroid', JSON.stringify(products));
-    io.emit('productsWeb', products);
+    io.emit('productsAndroid', JSON.stringify(productsAndroid));
+    io.emit('productsWeb', productsWeb);
     connection.end();
     console.log("Connection closed.");
   }
